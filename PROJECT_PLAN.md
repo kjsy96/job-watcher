@@ -1,6 +1,6 @@
 # Job Watcher - Project Plan
 
-Version 11 - October 2026 (v11: recorded the owner's decisions on repo visibility, name, filters, and report location; company list still open. v10: added pathway title terms to sponsorship tiers, so occupation-based work permit candidates are noted and not excluded on eligibility wording alone. v9: added location tiers that require visa sponsorship, sponsorship detection in issue 2.3 (now 8 points), and handling for ambiguous short codes like "CA". v8: replaced the single location allow list with preference tiers, US-wide remote handling, non-US remote exclusion, and flagging of ambiguous locations. v7: added story point estimates to every issue, with phase totals. v6: restructured filtering into separate role title, domain, and work term lists with an overlap score and a new Possible tier, so generic titles in strong-fit industries are not missed. v5: added issue 2.9, a UI review after the Phase 2 week of real use. v4: added Phase 5, Claude-assisted company discovery with owner approval; moved company discovery out of the out-of-scope list. v3: prepared for a public repo by neutralizing example locations, rewording the purpose section, and removing resume wording. v2: added the aggregator API test checkpoint after Phase 2; recorded the job alert email option as considered and set aside)
+Version 12 - October 2026 (v12: moved the aggregator API test checkpoint from after Phase 2 to after Phase 1, since most of the owner's target companies are on platforms the tool can't read. v11: recorded the owner's decisions on repo visibility, name, filters, and report location; company list still open. v10: added pathway title terms to sponsorship tiers, so occupation-based work permit candidates are noted and not excluded on eligibility wording alone. v9: added location tiers that require visa sponsorship, sponsorship detection in issue 2.3 (now 8 points), and handling for ambiguous short codes like "CA". v8: replaced the single location allow list with preference tiers, US-wide remote handling, non-US remote exclusion, and flagging of ambiguous locations. v7: added story point estimates to every issue, with phase totals. v6: restructured filtering into separate role title, domain, and work term lists with an overlap score and a new Possible tier, so generic titles in strong-fit industries are not missed. v5: added issue 2.9, a UI review after the Phase 2 week of real use. v4: added Phase 5, Claude-assisted company discovery with owner approval; moved company discovery out of the out-of-scope list. v3: prepared for a public repo by neutralizing example locations, rewording the purpose section, and removing resume wording. v2: added the aggregator API test checkpoint after Phase 2; recorded the job alert email option as considered and set aside)
 
 ## 1. Purpose
 
@@ -33,7 +33,7 @@ Later phases connect the posting database to Claude through a custom MCP server,
 ### Out of scope (v1)
 
 - LinkedIn, Indeed, Glassdoor, or any site requiring login or restricting automated access
-- Workday, SuccessFactors, Taleo, iCIMS, and other large-employer systems (most big OEMs such as Caterpillar, Komatsu, Sandvik). Pulling from these directly is not planned. Coverage of large employers through a job aggregator API is tested at the checkpoint after Phase 2.
+- Workday, SuccessFactors, Taleo, iCIMS, and other large-employer systems (most big OEMs such as Caterpillar, Komatsu, Sandvik). Pulling from these directly is not planned. Coverage of large employers through a job aggregator API is tested at the checkpoint after Phase 1.
 - Parsing job alert emails (LinkedIn or company career sites). Considered and set aside: alerts contain only titles and links, so full descriptions would still need manual reading.
 - Adding companies to the list without the owner's approval. Discovery proposes; the owner decides.
 - Applying, emailing, messaging, or any action outside the local machine
@@ -212,6 +212,31 @@ Phase estimate: 23 points.
 
 Done when: running fetch twice in a row reports new postings the first time and zero new the second, and a deliberately wrong board name shows up as an error in the summary.
 
+### Checkpoint - Aggregator API test (after the v0.2.0 release, before Phase 2)
+
+Checkpoint estimate: 3 points (one issue covering the throwaway script and the owner's evaluation).
+
+**Why:** Greenhouse, Lever, and Ashby cover mostly startups and mid-size companies. Large employers (Caterpillar, Komatsu, Sandvik, and similar) mostly use Workday or other systems that can't be pulled from directly. A job aggregator API is the only allowed route found so far that might provide full descriptions for those companies. Some aggregators return only shortened descriptions, which would break the travel and training filters, so this is tested before anything is built.
+
+**When:** As soon as the v0.2.0 release is tagged. Claude Code stops here and reminds the owner before starting any Phase 2 work. This was moved from after Phase 2 in v12 of this plan, because most of the owner's target companies turned out to be on platforms the tool can't read. See `docs/decisions.md`.
+
+**How (about one afternoon):**
+1. The owner picks one or two aggregators to test (Adzuna is one candidate), reads their terms of use and free-tier limits, and signs up for an API key personally. The key goes in `.env`, which is gitignored.
+2. Claude Code writes a throwaway script in `spikes/aggregator_test/` (not part of the main package, no CI requirement) that pulls 20 to 30 postings matching the owner's title keywords, including searches for 3 to 5 large target companies.
+3. The script saves results to a CSV with: company, title, posting date, date first returned by the aggregator, description length, and link.
+4. The owner checks the results against four questions and records the answers in `docs/aggregator-test.md`:
+   - **Complete descriptions?** Open 5 postings on the company's own site and compare against the aggregator text, especially whether travel and duties sections are included.
+   - **Big companies covered?** Do known open roles at the large target companies appear?
+   - **How delayed?** Days between the original posting date and the aggregator returning it.
+   - **Terms allow this use?** Personal, low-volume, daily use within the free tier.
+
+**Outcomes:**
+- **Passes all four:** add an aggregator phase to this plan (new source, same Posting format, same filters, duplicate detection against Greenhouse/Lever/Ashby postings). The owner decides whether it comes before or after Phase 2. Either way, Phase 2's filters are designed knowing what the aggregator's descriptions contain. Employers found through the aggregator that are not on the company list are also collected into a "new company candidates" section of the daily report, feeding Phase 5.
+- **Fails on complete descriptions or terms:** record the result, keep large employers as manual checks, and move on to Phase 2.
+- **Partial pass:** The owner decides, with the tradeoff written into `docs/decisions.md`.
+
+The owner can choose to defer this checkpoint, but it is recorded as deferred in `docs/decisions.md` rather than skipped silently.
+
 ### Phase 2 - Filter, report, schedule (v0.3.0)
 
 Phase estimate: 29 points.
@@ -231,31 +256,6 @@ Phase estimate: 29 points.
 2.9 [1 pt] UI review: at the end of the week, the owner notes which steps felt clumsy (reading reports, reviewing excluded postings, approving candidates, tracking what was done with a posting). Record the decision in `docs/decisions.md`: no UI, a single-file HTML report (no server, read-only), or a small local UI phase scoped to the specific clumsy step.
 
 Done when: a week of normal laptop use (shut and offline at irregular times) produces exactly one report per day the laptop was online, and the reports are ones the owner finds useful, with rule changes logged.
-
-### Checkpoint - Aggregator API test (after the v0.3.0 release, before Phase 3)
-
-Checkpoint estimate: 3 points (one issue covering the throwaway script and the owner's evaluation).
-
-**Why:** Greenhouse, Lever, and Ashby cover mostly startups and mid-size companies. Large employers (Caterpillar, Komatsu, Sandvik, and similar) mostly use Workday or other systems that can't be pulled from directly. A job aggregator API is the only allowed route found so far that might provide full descriptions for those companies. Some aggregators return only shortened descriptions, which would break the travel and training filters, so this is tested before anything is built.
-
-**When:** As soon as the v0.3.0 release is tagged. Claude Code stops here and reminds the owner before starting any Phase 3 work.
-
-**How (about one afternoon):**
-1. The owner picks one or two aggregators to test (Adzuna is one candidate), reads their terms of use and free-tier limits, and signs up for an API key personally. The key goes in `.env`, which is gitignored.
-2. Claude Code writes a throwaway script in `spikes/aggregator_test/` (not part of the main package, no CI requirement) that pulls 20 to 30 postings matching the owner's title keywords, including searches for 3 to 5 large target companies.
-3. The script saves results to a CSV with: company, title, posting date, date first returned by the aggregator, description length, and link.
-4. The owner checks the results against four questions and records the answers in `docs/aggregator-test.md`:
-   - **Complete descriptions?** Open 5 postings on the company's own site and compare against the aggregator text, especially whether travel and duties sections are included.
-   - **Big companies covered?** Do known open roles at the large target companies appear?
-   - **How delayed?** Days between the original posting date and the aggregator returning it.
-   - **Terms allow this use?** Personal, low-volume, daily use within the free tier.
-
-**Outcomes:**
-- **Passes all four:** add an aggregator phase to this plan (new source, same Posting format, same filters, duplicate detection against Greenhouse/Lever/Ashby postings). Employers found through the aggregator that are not on the company list are also collected into a "new company candidates" section of the daily report, feeding Phase 5.
-- **Fails on complete descriptions or terms:** record the result, keep large employers as manual checks, and move on to Phase 3.
-- **Partial pass:** The owner decides, with the tradeoff written into `docs/decisions.md`.
-
-The owner can choose to defer this checkpoint, but it is recorded as deferred in `docs/decisions.md` rather than skipped silently.
 
 ### Phase 3 - MCP server (v0.4.0)
 

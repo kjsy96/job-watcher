@@ -55,7 +55,7 @@ The owner makes every application decision. This tool stops at a shortlist. It n
 
 ## Checkpoints where you must stop and prompt the owner
 
-- **Aggregator API test.** As soon as the v0.3.0 release (end of Phase 2) is tagged, do not start Phase 3. Tell the owner the aggregator test is due, summarize the steps from the "Checkpoint - Aggregator API test" section of `PROJECT_PLAN.md`, and ask whether to run it now or defer it. If deferred, record that in `docs/decisions.md`. If the owner starts a session after v0.3.0 and the test has not been run or deferred, give that reminder before doing anything else.
+- **Aggregator API test.** As soon as the v0.2.0 release (end of Phase 1) is tagged, do not start Phase 2. Tell the owner the aggregator test is due, summarize the steps from the "Checkpoint - Aggregator API test" section of `PROJECT_PLAN.md`, and ask whether to run it now or defer it. If deferred, record that in `docs/decisions.md`. If the owner starts a session after v0.2.0 and the test has not been run or deferred, give that reminder before doing anything else.
 
 ## Things to ask the owner about rather than decide alone
 
