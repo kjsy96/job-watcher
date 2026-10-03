@@ -110,3 +110,31 @@ def test_reason_names_tier_segment_and_term() -> None:
 def test_lowercase_after_comma_is_not_a_code() -> None:
     # "or" here is a word, not Oregon.
     assert place("Remote, or hybrid", RULES).placement is FLAG
+
+
+def _rules_with_remote_only_in_tier2(tmp_path: Path, tier2_remote: str) -> FilterRules:
+    path = tmp_path / "filters.toml"
+    path.write_text(
+        '[roles]\ntitle_include = ["engineer"]\n[domain]\nterms = []\n[work]\nterms = []\n'
+        '[location.tier1]\nlabel = "On-site only"\nplace_terms = ["denver"]\n'
+        f'[location.tier2]\nlabel = "Remote OK"\nremote_terms = [{tier2_remote}]\n',
+        encoding="utf-8",
+    )
+    return load_filter_rules(path)
+
+
+def test_plain_remote_goes_to_the_first_tier_that_lists_it(tmp_path: Path) -> None:
+    # Tier order is preference order, but a tier that doesn't accept remote
+    # is skipped rather than chosen.
+    rules = _rules_with_remote_only_in_tier2(tmp_path, '"remote"')
+    result = place("Remote", rules)
+    assert result.placement is TIER and result.tier is not None and result.tier.number == 2
+
+
+def test_plain_remote_with_no_tier_accepting_it_is_flagged(tmp_path: Path) -> None:
+    # "remote" is always recognized as a remote marker, even when no tier
+    # lists it; then nothing accepts it, so it needs a human look.
+    rules = _rules_with_remote_only_in_tier2(tmp_path, '"work from home"')
+    result = place("Remote", rules)
+    assert result.placement is FLAG
+    assert "no tier recognizes 'Remote'" in result.reason

@@ -38,8 +38,7 @@ def _pattern(term: str) -> re.Pattern[str]:
     # Only the last word of a phrase is inflected: "field service" matches
     # "field services", the way English pluralizes a phrase.
     words = [re.escape(word) for word in term.split()]
-    if words:
-        words[-1] = _singular_or_plural(term.split()[-1])
+    words[-1] = _singular_or_plural(term.split()[-1])
     return re.compile(r"(?<!\w)" + r"\s+".join(words) + r"(?!\w)", re.IGNORECASE)
 
 
@@ -52,6 +51,10 @@ class Terms:
 
     def __init__(self, terms: Iterable[str]) -> None:
         self.terms: tuple[str, ...] = tuple(terms)
+        if any(not term.strip() for term in self.terms):
+            # A blank term compiles to a pattern that matches every text,
+            # which would silently turn a rule on for every posting.
+            raise ValueError("a term must not be blank")
         self._patterns = [(term, _pattern(term)) for term in self.terms]
 
     def hits(self, *texts: str) -> list[str]:
