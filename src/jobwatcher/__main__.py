@@ -15,7 +15,7 @@ from typing import TextIO
 
 from jobwatcher import __version__, fetch
 from jobwatcher.config import ConfigError, load_companies
-from jobwatcher.fetch import CompanyResult
+from jobwatcher.fetch import CompanyResult, Outcome
 from jobwatcher.store import Store, StoreError
 
 EXIT_OK = 0
@@ -53,12 +53,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     if args.command == "fetch":
-        return run_fetch(args.config, args.db, sys.stdout)
+        return run_fetch(args.config, args.db, sys.stdout, sys.stderr)
     parser.print_help()
     return EXIT_OK
 
 
-def run_fetch(config_path: Path, db_path: Path, out: TextIO) -> int:
+def run_fetch(config_path: Path, db_path: Path, out: TextIO, err: TextIO | None = None) -> int:
     try:
         companies = load_companies(config_path)
     except ConfigError as exc:
@@ -70,33 +70,33 @@ def run_fetch(config_path: Path, db_path: Path, out: TextIO) -> int:
     seen_at = datetime.now(UTC)
     try:
         with Store.open(db_path) as store, fetch.make_client() as client:
-            results = fetch.fetch_all(companies, store, client, seen_at)
+            results = fetch.fetch_all(companies, store, client, seen_at, errors=err)
     except StoreError as exc:
         print(f"Database error: {exc}", file=out)
         return EXIT_UNUSABLE
 
     print_summary(results, seen_at, out)
-    return EXIT_OK if all(r.ok for r in results) else EXIT_COMPANY_FAILED
+    # Anything short of every company OK exits non-zero, so a scheduled run
+    # can never look healthy while a source is broken or suspicious.
+    return EXIT_OK if all(r.outcome is Outcome.OK for r in results) else EXIT_COMPANY_FAILED
+
+
+_STATUS_LABEL = {Outcome.OK: "ok", Outcome.WARNING: "WARNING", Outcome.FAILED: "ERROR"}
 
 
 def print_summary(results: list[CompanyResult], seen_at: datetime, out: TextIO) -> None:
     rows = [("Company", "Board", "Fetched", "New", "Reopened", "Closed", "Status")]
     for r in results:
         board_id = f"{r.company.source}:{r.company.board}"
+        fetched = "-" if r.fetched is None else str(r.fetched)
         if r.board is None:
-            rows.append((r.company.name, board_id, "-", "-", "-", "-", f"ERROR: {r.error}"))
+            counts = ("-", "-", "-")
         else:
-            rows.append(
-                (
-                    r.company.name,
-                    board_id,
-                    str(r.fetched),
-                    str(r.board.new),
-                    str(r.board.reopened),
-                    str(r.board.closed),
-                    "ok",
-                )
-            )
+            counts = (str(r.board.new), str(r.board.reopened), str(r.board.closed))
+        status = _STATUS_LABEL[r.outcome]
+        if r.message:
+            status = f"{status}: {r.message}"
+        rows.append((r.company.name, board_id, fetched, *counts, status))
 
     widths = [max(len(row[col]) for row in rows) for col in range(6)]
     print(f"Fetch run {seen_at:%Y-%m-%d %H:%M} UTC", file=out)
@@ -106,19 +106,21 @@ def print_summary(results: list[CompanyResult], seen_at: datetime, out: TextIO) 
         cells += [row[c].rjust(widths[c]) for c in range(2, 6)]
         print("  ".join([*cells, row[6]]), file=out)
 
-    done = [r for r in results if r.board is not None]
-    failed = len(results) - len(done)
+    recorded = [r for r in results if r.board is not None]
+    counts_by = {o: sum(r.outcome is o for r in results) for o in Outcome}
     print(
-        f"{len(results)} companies: {len(done)} ok, {failed} failed. "
-        f"{sum(r.fetched or 0 for r in done)} fetched, "
-        f"{sum(r.board.new for r in done if r.board)} new, "
-        f"{sum(r.board.reopened for r in done if r.board)} reopened, "
-        f"{sum(r.board.closed for r in done if r.board)} closed.",
+        f"{len(results)} companies: {counts_by[Outcome.OK]} ok, "
+        f"{counts_by[Outcome.WARNING]} warning, {counts_by[Outcome.FAILED]} failed. "
+        f"{sum(r.fetched or 0 for r in recorded)} fetched, "
+        f"{sum(r.board.new for r in recorded if r.board)} new, "
+        f"{sum(r.board.reopened for r in recorded if r.board)} reopened, "
+        f"{sum(r.board.closed for r in recorded if r.board)} closed.",
         file=out,
     )
-    if failed:
+    if len(recorded) < len(results):
         print(
-            "Failed companies were not recorded, so none of their postings were marked closed.",
+            "Companies with a warning or error were not recorded, "
+            "so none of their postings were marked closed.",
             file=out,
         )
 

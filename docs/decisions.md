@@ -2,6 +2,16 @@
 
 Owner decisions that change the plan, the rules, or how the tool behaves, newest first. Each entry says what was decided, why, and what it affects. Filter rule changes during Phase 2 tuning are logged here too (issue 2.8).
 
+## 2026-10-03: A board that suddenly returns 0 jobs is a warning, not recorded (pending owner confirmation in PR review)
+
+**Decision:** When a board answers successfully with 0 jobs while the store still has open postings for it, the fetch shows a WARNING for that company and does **not** record the result. Its postings stay open, and the run exits 1. A board with 0 jobs and nothing open, such as a newly added company with no openings, is just OK.
+
+**Why:** Design principle 3: a broken source must never look like "no new jobs." A board going from some jobs to none at once usually means something changed: the company moved to an unsupported platform, renamed its board, or the API had a glitch. It rarely means every job closed the same day. Recording it would close every posting and look like a quiet day.
+
+**Tradeoff:** If a company really does close every opening, the warning repeats each run until it posts again or is removed from `config/companies.toml`. The alternative was to record it (closing everything) and warn, which loses nothing if it was real. But if it was a glitch, the postings would come back as "reopened" and the history would be muddied.
+
+**Affects:** `src/jobwatcher/fetch.py` (issue 1.8).
+
 ## 2026-10-03: Aggregator API test moved to after Phase 1
 
 **Decision:** Run the "Checkpoint - Aggregator API test" right after the v0.2.0 release (end of Phase 1) and before Phase 2. It was previously after v0.3.0 (end of Phase 2).

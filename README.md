@@ -74,10 +74,15 @@ It prints one row per company (fetched, new, reopened, and closed counts, or the
 | Exit code | Meaning |
 |---|---|
 | 0 | Every company was fetched and recorded |
-| 1 | The run finished, but at least one company failed (see its row) |
+| 1 | The run finished, but at least one company failed or has a warning (see its row) |
 | 2 | Nothing ran: bad arguments, an invalid config, or an unusable database |
 
-A company that fails is not recorded for that run, so a temporary error never marks its postings as closed.
+A company is only recorded when its board was read successfully. Anything else is shown in its row and leaves that company's data untouched for the run:
+
+- **ERROR**: the board couldn't be read or used. Causes include a timeout, a connection failure, an HTTP error status, a response that isn't JSON or has an unexpected shape, or an unexpected error (the full traceback goes to stderr).
+- **WARNING**: the board answered with 0 jobs while postings were still open for it. This usually means the board moved or broke, so the postings are kept open rather than marked closed. The warning repeats each run until the board has jobs again or the company is removed from the config.
+
+One company's problem never stops the others.
 
 ## Development
 

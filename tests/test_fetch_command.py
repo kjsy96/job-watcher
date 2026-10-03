@@ -105,7 +105,8 @@ def test_first_run_records_everything_as_new(boards: FakeBoards, tmp_path: Path)
     code, out = run(CONFIG, tmp_path)
 
     assert code == EXIT_OK
-    assert "3 companies: 3 ok, 0 failed. 13 fetched, 13 new, 0 reopened, 0 closed." in out
+    totals = "3 companies: 3 ok, 0 warning, 0 failed. 13 fetched, 13 new, 0 reopened, 0 closed."
+    assert totals in out
     assert summary_row(out, "GitLab")[2:] == ["4", "4", "0", "0", "ok"]
     assert summary_row(out, "Lever Demo")[3:] == ["5", "5", "0", "0", "ok"]
 
@@ -132,7 +133,7 @@ def test_wrong_board_is_reported_and_others_still_run(boards: FakeBoards, tmp_pa
 
     assert code == EXIT_COMPANY_FAILED
     assert "Typo Co" in out and "ERROR: HTTP 404" in out
-    assert "4 companies: 3 ok, 1 failed. 13 fetched, 13 new" in out
+    assert "4 companies: 3 ok, 0 warning, 1 failed. 13 fetched, 13 new" in out
     assert "none of their postings were marked closed" in out
 
 
@@ -162,6 +163,20 @@ def test_posting_gone_from_board_is_closed(boards: FakeBoards, tmp_path: Path) -
 
     assert code == EXIT_OK
     assert summary_row(out, "Lever Demo")[3:] == ["4", "0", "0", "1", "ok"]
+
+
+def test_board_that_suddenly_empties_is_a_warning(boards: FakeBoards, tmp_path: Path) -> None:
+    run(CONFIG, tmp_path)
+    ashby_url = next(u for u in ROUTES if "ashby" in u)
+    boards.overrides[ashby_url] = {"apiVersion": "1", "jobs": []}
+
+    code, out = run(CONFIG, tmp_path)
+
+    assert code == EXIT_COMPANY_FAILED
+    row = next(line for line in out.splitlines() if line.startswith("Ashby "))
+    assert "WARNING: returned 0 jobs but 4 were open; not recorded" in row
+    assert "3 companies: 2 ok, 1 warning, 0 failed." in out
+    assert "were not recorded, so none of their postings were marked closed" in out
 
 
 def test_config_error_stops_before_any_request(boards: FakeBoards, tmp_path: Path) -> None:
