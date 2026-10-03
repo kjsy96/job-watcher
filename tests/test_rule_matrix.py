@@ -42,7 +42,7 @@ class Row:
     reason: str  # must appear in one of the result's reasons
     title: str = "Implementation Engineer"
     location: str = "Remote - US"
-    description: str = "Commissioning and data validation at mining sites."
+    description: str = "Commissioning and data validation at mining sites. Travel up to 10%."
     remote: Remote = Remote.UNKNOWN
     sector: str = ""
     extra: dict[str, object] = field(default_factory=dict)
@@ -85,7 +85,7 @@ ROWS = [
         "match in company sector",
         MATCH,
         "domain: manufacturing",
-        description="Commissioning for customers.",
+        description="Commissioning for customers. Travel up to 10%.",
         sector="manufacturing",
     ),
     Row(
@@ -93,7 +93,7 @@ ROWS = [
         "no match (work terms still give a Match)",
         MATCH,
         "work: commissioning",
-        description="Commissioning for customers.",
+        description="Commissioning for customers. Travel up to 10%.",
     ),
     Row(
         "domain",
@@ -109,7 +109,7 @@ ROWS = [
         "no match (domain terms still give a Match)",
         MATCH,
         "domain: mining",
-        description="Work at mining sites.",
+        description="Work at mining sites. Travel up to 10%.",
     ),
     Row(
         "work",
@@ -233,6 +233,87 @@ ROWS = [
         FLAGGED,
         "remote, but no tier recognizes 'Remote, Anywhere'",
         location="Remote, Anywhere",
+    ),
+    # --- Travel ([travel] max_percent = 40 in the test rules) ---
+    Row("travel", "match: within the limit", MATCH, "travel 'up to 10%' is within 40%"),
+    Row(
+        "travel",
+        "no match: above the limit",
+        EXCLUDED,
+        "travel '75%' exceeds the 40% limit",
+        description="Commissioning at mining sites. Role is ~75% travel.",
+    ),
+    Row(
+        "travel",
+        "can't tell: range straddles the limit",
+        FLAGGED,
+        "travel 'up to 50%' may exceed the 40% limit",
+        description="Commissioning at mining sites. Ability to travel (up to 50%).",
+    ),
+    Row(
+        "travel",
+        "can't tell: no percentage given",
+        FLAGGED,
+        "travel mentioned without a percentage",
+        description="Commissioning at mining sites. Occasional travel to customer sites.",
+    ),
+    Row(
+        "travel",
+        "can't tell: not stated",
+        FLAGGED,
+        "travel not stated",
+        description="Commissioning at mining sites.",
+    ),
+    # --- Sponsorship (only tiers with requires_sponsorship; test tier 2) ---
+    Row(
+        "sponsorship",
+        "match: offered",
+        MATCH,
+        "sponsorship: offered ('visa sponsorship')",
+        title="Implementation Lead",
+        location="Montreal, QC",
+        description="Commissioning at mining sites. Travel up to 10%. Visa sponsorship provided.",
+    ),
+    Row(
+        "sponsorship",
+        "no match: refused",
+        EXCLUDED,
+        "sponsorship: won't sponsor ('unable to sponsor')",
+        title="Implementation Lead",
+        location="Montreal, QC",
+        description="Commissioning at mining sites. Travel up to 10%. Unable to sponsor.",
+    ),
+    Row(
+        "sponsorship",
+        "no match: eligibility only, not a pathway title",
+        EXCLUDED,
+        "sponsorship: eligibility required",
+        title="Implementation Lead",
+        location="Montreal, QC",
+        description=(
+            "Commissioning at mining sites. Travel up to 10%. "
+            "Must be eligible to work in Example Country."
+        ),
+    ),
+    Row(
+        "sponsorship",
+        "can't tell: not stated",
+        FLAGGED,
+        "sponsorship: not stated",
+        title="Implementation Lead",
+        location="Montreal, QC",
+    ),
+    Row(
+        "sponsorship",
+        "can't tell: eligibility only, pathway title may qualify",
+        FLAGGED,
+        "pathway title ('engineer') may qualify",
+        title="Field Engineer",
+        location="Montreal, QC",
+        description=(
+            "Commissioning at mining sites. Travel up to 10%. "
+            "Must be eligible to work in Example Country."
+        ),
     ),
     # --- Several locations: best tier wins ---
     Row(
