@@ -1,0 +1,46 @@
+# Neutral rules for the filter tests. Same shape as a real filters.toml, with
+# made-up preferences (places chosen only to exercise each rule), so tests
+# never depend on, or reveal, the owner's private file.
+
+[roles]
+title_include = ["implementation", "field engineer", "test engineer", "deployment"]
+title_exclude = ["intern", "vp ", "account executive"]
+
+[domain]
+terms = ["mining", "mine", "manufacturing", "cooling tower"]
+
+[work]
+terms = ["commissioning", "data validation", "troubleshooting"]
+
+[location]
+non_us_remote_terms = ["india", "emea", "uk", "germany"]
+ambiguous_terms = ["portland", "springfield", "ca"]
+
+[location.tier1]
+label = "Remote US / Mountain"
+remote_terms = ["remote", "work from home"]
+us_wide_terms = ["united states", "usa", "us"]
+state_codes = ["CO", "OR"]
+place_terms = ["denver", "salem"]
+
+[location.tier2]
+label = "Quebec / Remote Example Country"
+requires_sponsorship = true
+remote_terms = ["remote example country"]
+country_terms = ["example country"]
+province_codes = ["QC"]
+place_terms = ["quebec"]
+
+[location.tier3]
+label = "Texarkana"
+# Spans two states (TX and AR), so this tier lists places but no codes.
+place_terms = ["texarkana"]
+
+[sponsorship]
+hard_no_terms = ["unable to sponsor"]
+
+[description]
+flag_terms = ["webinar", "train the trainer"]
+
+[travel]
+max_percent = 40
