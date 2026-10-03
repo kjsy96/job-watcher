@@ -30,6 +30,8 @@ remote_terms = ["remote example country"]
 country_terms = ["example country"]
 province_codes = ["QC"]
 place_terms = ["quebec"]
+pathway_title_terms = ["engineer"]
+pathway_note = "Possible engineer permit route: confirm fit"
 
 [location.tier3]
 label = "Texarkana"
@@ -37,7 +39,9 @@ label = "Texarkana"
 place_terms = ["texarkana"]
 
 [sponsorship]
-hard_no_terms = ["unable to sponsor"]
+hard_no_terms = ["unable to sponsor", "sponsorship is not available"]
+eligibility_terms = ["must be eligible to work in example country"]
+positive_terms = ["visa sponsorship", "will sponsor"]
 
 [description]
 flag_terms = ["webinar", "train the trainer"]
