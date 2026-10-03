@@ -1,0 +1,19 @@
+# Example company list. Copy to config/companies.toml (gitignored) and
+# replace with your real targets. One [[company]] block per company.
+#
+# source: greenhouse | lever | ashby
+# board:  the company's board identifier on that platform, usually the
+#         slug in its public job board URL. Confirm it when adding.
+# sector: free text, used for grouping in reports.
+
+[[company]]
+name = "Example Industrial AI Co"
+source = "greenhouse"
+board = "exampleco"
+sector = "industrial AI"
+
+[[company]]
+name = "Example Energy Analytics"
+source = "lever"
+board = "example-energy"
+sector = "energy"
