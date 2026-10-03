@@ -15,11 +15,49 @@ from jobwatcher.matching import Terms
         ("p&id", "Read P&ID drawings", True),
         ("data validation", "data\nvalidation of sensors", True),  # phrase across a line break
         ("data validation", "data quality validation", False),  # words must be adjacent
-        ("field service", "Field Services Engineer", False),  # whole words only, no plurals
     ],
 )
 def test_whole_word_case_insensitive(term: str, text: str, expected: bool) -> None:
     assert Terms([term]).any(text) is expected
+
+
+@pytest.mark.parametrize(
+    ("term", "text"),
+    [
+        ("field service", "Field Services Engineer"),  # plural of a phrase's last word
+        ("solutions", "Solution Architect"),  # singular of a plural term
+        ("solution", "Solutions Consultant"),
+        ("deployment", "Safety Manager - Mining Deployments"),
+        ("process", "Chemical processes"),
+        ("utility", "Electric utilities"),
+        ("utilities", "A water utility"),
+        ("mine", "Underground mines"),
+        ("switch", "Network switches"),
+    ],
+)
+def test_singular_and_plural_both_match(term: str, text: str) -> None:
+    assert Terms([term]).any(text)
+
+
+@pytest.mark.parametrize(
+    ("term", "text"),
+    [
+        ("us", "Remote - USS Enterprise"),  # short terms stay exact
+        ("us", "Remote - U"),
+        ("ca", "Cas Remote"),
+        ("vp", "VPs of sales"),
+        ("field service", "Fields service"),  # only the last word is inflected
+        ("deployed", "deploys"),  # not a plural, a different word form
+        ("mine", "Mineral exploration"),  # still whole words only
+        ("solution", "solutioning"),
+    ],
+)
+def test_inflection_does_not_overreach(term: str, text: str) -> None:
+    assert not Terms([term]).any(text)
+
+
+def test_reasons_quote_the_configured_spelling() -> None:
+    assert Terms(["solutions"]).hits("Solution Architect") == ["solutions"]
 
 
 def test_hits_are_in_config_order_and_spelled_as_configured() -> None:

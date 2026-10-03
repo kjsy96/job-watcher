@@ -3,6 +3,31 @@
 import re
 from collections.abc import Iterable
 
+# Plural and singular forms are only added for words this long. Short terms
+# are usually codes or abbreviations ("us", "ca", "uk", "vp") where an extra
+# or missing "s" changes the meaning ("us" must never become "u").
+_MIN_INFLECT_LENGTH = 4
+
+
+def _singular_or_plural(word: str) -> str:
+    """A regex for a word in either its singular or plural form.
+
+    Covers regular English plurals only: solution/solutions,
+    deployment/deployments, process/processes, utility/utilities.
+    """
+    if len(word) < _MIN_INFLECT_LENGTH or not word.isalpha():
+        return re.escape(word)
+    lower = word.lower()
+    if lower.endswith("ies"):  # utilities -> utility
+        return re.escape(word[:-3]) + "(?:y|ies)"
+    if lower.endswith("ss"):  # process -> processes
+        return re.escape(word) + "(?:es)?"
+    if lower.endswith("s"):  # solutions -> solution
+        return re.escape(word[:-1]) + "(?:s|es)?"
+    if lower.endswith("y") and lower[-2] not in "aeiou":  # utility -> utilities
+        return re.escape(word[:-1]) + "(?:y|ies)"
+    return re.escape(word) + "(?:s|es)?"  # deployment -> deployments, switch -> switches
+
 
 def _pattern(term: str) -> re.Pattern[str]:
     # Whole words only: "mine" must not match "determine", and "us" must not
@@ -10,7 +35,11 @@ def _pattern(term: str) -> re.Pattern[str]:
     # starts or ends with punctuation, like "u.s." or "p&id".
     # Spaces inside a phrase match any run of whitespace, so a phrase still
     # matches when a description wraps it across a line break.
+    # Only the last word of a phrase is inflected: "field service" matches
+    # "field services", the way English pluralizes a phrase.
     words = [re.escape(word) for word in term.split()]
+    if words:
+        words[-1] = _singular_or_plural(term.split()[-1])
     return re.compile(r"(?<!\w)" + r"\s+".join(words) + r"(?!\w)", re.IGNORECASE)
 
 
