@@ -1,0 +1,352 @@
+{
+  "apiVersion": "1",
+  "jobs": [
+    {
+      "id": "55078a90-f1f0-4190-9d2a-c14d1cbc5486",
+      "title": "Product Support Specialist - Australia",
+      "department": "Customer Success",
+      "team": "Customer Support",
+      "employmentType": "FullTime",
+      "location": "Australia",
+      "secondaryLocations": [],
+      "publishedAt": "2026-02-20T17:26:27.704+00:00",
+      "isListed": true,
+      "isRemote": true,
+      "workplaceType": "Remote",
+      "address": {
+        "postalAddress": {
+          "addressRegion": "",
+          "addressCountry": "Australia",
+          "addressLocality": ""
+        }
+      },
+      "jobUrl": "https://jobs.ashbyhq.com/Ashby/55078a90-f1f0-4190-9d2a-c14d1cbc5486",
+      "applyUrl": "https://jobs.ashbyhq.com/Ashby/55078a90-f1f0-4190-9d2a-c14d1cbc5486/application",
+      "descriptionHtml": "<p style=\"min-height:1.5em\">We're excited to share that we're hiring a Product Support Specialist in the APAC region, specifically in Australia 🎉.</p><p style=\"min-height:1.5em\">Over the past few years, we’ve built a team of Ashby experts who delight customers through keen attention to detail, deep product knowledge, and fast, thoughtful support. By joining the team, you’ll contribute to delivering that same world-class experience.</p><p style=\"min-height:1.5em\">In this role, you’ll work closely with customers every day. Ashby is a broad and complex product, so you can expect to handle everything from troubleshooting sophisticated integrations to guiding customers through detailed workflows and best practices.</p><p style=\"min-height:1.5em\">You’ll also spend time on projects that make the work we do better. Past projects our team has taken on include:</p><ul style=\"min-height:1.5em\"><li><p style=\"min-height:1.5em\">Absorbing and synthesizing highly technical work from our Engineering Team to create enablement for technical up-leveling of the broader Support Team.</p></li><li><p style=\"min-height:1.5em\">Developing workflow automation allowing for better team cohesion and efficacy.</p></li></ul><p style=\"min-height:1.5em\">As a company, we value a strong sense of ownership, principled thinking over experience, and thoughtful communication. These and other values, which we’ll explore more deeply during the interview process, guide how we work.</p><div style=\"min-height:1.2em;margin-top:0;margin-bottom:0\"> </div><h2><strong>You should apply if:</strong></h2><ul style=\"min-height:1.5em\"><li><p style=\"min-height:1.5em\">You are already comfortable owning complex SaaS troubleshooting from first report through resolution, including isolating configuration issues, reproducing ambiguous behavior, and communicating clearly</p></li><li><p style=\"min-height:1.5em\">You can explain technical issues concisely, you think systematically, and operate with strong ownership in asynchronous environments. You can explain the same issue differently depending on the audience, while staying clear and direct.</p>",
+      "descriptionPlain": "We're excited to share that we're hiring a Product Support Specialist in the APAC region, specifically in Australia 🎉.\n\nOver the past few years, we’ve built a team of Ashby experts who delight customers through keen attention to detail, deep product knowledge, and fast, thoughtful support. By joining the team, you’ll contribute to delivering that same world-class experience.\n\nIn this role, you’ll work closely with customers every day. Ashby is a broad and complex product, so you can expect to handle everything from troubleshooting sophisticated integrations to guiding customers through detailed workflows and best practices.\n\nYou’ll also spend time on projects that make the work we do better. Past projects our team has taken on include:\n\n - Absorbing and synthesizing highly technical work from our Engineering Team to create enablement for technical up-leveling of the broader Support Team.\n\n - Developing workflow automation allowing for better team cohesion and efficacy.\n\nAs a company, we value a strong sense of ownership, principled thinking over experience, and thoughtful communication. These and other values, which we’ll explore more deeply during the interview process, guide how we work.\n\n \n\n\nYOU SHOULD APPLY IF:\n\n - You are already comfortable owning complex SaaS troubleshooting from first report through resolution, including isolating configuration issues, reproducing ambiguous behavior, and communicating clearly\n\n - You can explain technical issues concisely, you think systematically, and operate with strong ownership in asynchronous environments. You can explain the same issue differently depending on the audience, while staying clear and direct."
+    },
+    {
+      "id": "51061458-3a38-4bea-84f4-7ea0ac3e417f",
+      "title": "Product Support Specialist - EMEA",
+      "department": "Customer Success",
+      "team": "Customer Support",
+      "employmentType": "FullTime",
+      "location": "United Kingdom",
+      "secondaryLocations": [
+        {
+          "location": "Germany",
+          "address": {
+            "postalAddress": {
+              "addressCountry": "Germany",
+              "addressLocality": ""
+            }
+          }
+        },
+        {
+          "location": "Ireland",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "",
+              "addressCountry": "Ireland",
+              "addressLocality": ""
+            }
+          }
+        },
+        {
+          "location": "Madrid",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "Madrid",
+              "addressCountry": "Spain",
+              "addressLocality": "Madrid"
+            }
+          }
+        },
+        {
+          "location": "Czech Republic",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "Czech Republic",
+              "addressCountry": "Czech Republic",
+              "addressLocality": "Prague"
+            }
+          }
+        },
+        {
+          "location": "Poland",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "Poland",
+              "addressCountry": "Poland",
+              "addressLocality": "Warsaw"
+            }
+          }
+        },
+        {
+          "location": "Barcelona",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "Catalonia",
+              "addressCountry": "Spain",
+              "addressLocality": "Barcelona"
+            }
+          }
+        },
+        {
+          "location": "Spain",
+          "address": {
+            "postalAddress": {
+              "addressCountry": "Spain"
+            }
+          }
+        },
+        {
+          "location": "Netherlands",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "",
+              "addressCountry": "Netherlands",
+              "addressLocality": "Amsterdam"
+            }
+          }
+        },
+        {
+          "location": "London",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "",
+              "addressCountry": "United Kingdom",
+              "addressLocality": "London"
+            }
+          }
+        },
+        {
+          "location": "France",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "",
+              "addressCountry": "France",
+              "addressLocality": ""
+            }
+          }
+        },
+        {
+          "location": "Hungary",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "Hungary",
+              "addressCountry": "Hungary",
+              "addressLocality": "Budapest"
+            }
+          }
+        }
+      ],
+      "publishedAt": "2026-02-20T21:10:00.884+00:00",
+      "isListed": true,
+      "isRemote": true,
+      "workplaceType": "Remote",
+      "address": {
+        "postalAddress": {
+          "addressRegion": "",
+          "addressCountry": "United Kingdom",
+          "addressLocality": ""
+        }
+      },
+      "jobUrl": "https://jobs.ashbyhq.com/Ashby/51061458-3a38-4bea-84f4-7ea0ac3e417f",
+      "applyUrl": "https://jobs.ashbyhq.com/Ashby/51061458-3a38-4bea-84f4-7ea0ac3e417f/application",
+      "descriptionHtml": "<p style=\"min-height:1.5em\">Hello! We're Barry and Harrison, Support Managers at Ashby. We're excited to share that we're hiring Product Support Specialists in Europe. </p><p style=\"min-height:1.5em\"><em>Please note: we’re currently hiring Product Support Specialists to work one weekend day in exchange for a weekday off. This role will follow either a Tuesday–Saturday or Sunday–Thursday schedule, with occasional adjustments for holidays or business needs. You can share your preferred working hours in your application.</em></p><p style=\"min-height:1.5em\">Over the past few years, we’ve built a team of Ashby experts who delight customers through keen attention to detail, deep product knowledge, and fast, thoughtful support. By joining the team, you’ll contribute to delivering that same world-class experience.</p><p style=\"min-height:1.5em\">In this role, you’ll work closely with customers every day. Ashby is a broad and complex product, so you can expect to handle everything from troubleshooting sophisticated integrations to guiding customers through detailed workflows and best practices.</p><p style=\"min-height:1.5em\">You’ll also spend time on projects that make the work we do better. Past projects our team has taken on include:</p><ul style=\"min-height:1.5em\"><li><p style=\"min-height:1.5em\">Absorbing and synthesizing highly technical work from our Engineering Team to create enablement for technical up-leveling of the broader Support Team.</p></li><li><p style=\"min-height:1.5em\">Developing workflow automation allowing for better team cohesion and efficacy.</p></li></ul><p style=\"min-height:1.5em\">As a company, we value a strong sense of ownership, principled thinking over experience, and thoughtful communication. These and other values, which we’ll explore more deeply during the interview process, guide how we work.</p><p style=\"min-height:1.5em\"></p><h2><strong>You should apply if:</strong></h2><ul style=\"min-height:1.5em\"><li><p style=\"min-height:1.5em\">You are already comfortable owning complex SaaS troubleshooting from first report through resolution, including isolating configuration issues, reproducing ambiguous behavior, and communicating clearly</p>",
+      "descriptionPlain": "Hello! We're Barry and Harrison, Support Managers at Ashby. We're excited to share that we're hiring Product Support Specialists in Europe. \n\nPlease note: we’re currently hiring Product Support Specialists to work one weekend day in exchange for a weekday off. This role will follow either a Tuesday–Saturday or Sunday–Thursday schedule, with occasional adjustments for holidays or business needs. You can share your preferred working hours in your application.\n\nOver the past few years, we’ve built a team of Ashby experts who delight customers through keen attention to detail, deep product knowledge, and fast, thoughtful support. By joining the team, you’ll contribute to delivering that same world-class experience.\n\nIn this role, you’ll work closely with customers every day. Ashby is a broad and complex product, so you can expect to handle everything from troubleshooting sophisticated integrations to guiding customers through detailed workflows and best practices.\n\nYou’ll also spend time on projects that make the work we do better. Past projects our team has taken on include:\n\n - Absorbing and synthesizing highly technical work from our Engineering Team to create enablement for technical up-leveling of the broader Support Team.\n\n - Developing workflow automation allowing for better team cohesion and efficacy.\n\nAs a company, we value a strong sense of ownership, principled thinking over experience, and thoughtful communication. These and other values, which we’ll explore more deeply during the interview process, guide how we work.\n\n\n\n\nYOU SHOULD APPLY IF:\n\n - You are already comfortable owning complex SaaS troubleshooting from first report through resolution, including isolating configuration issues, reproducing ambiguous behavior, and communicating clearly"
+    },
+    {
+      "id": "36df1986-8af2-4cc4-a96a-4f307d493ac0",
+      "title": "Enterprise Account Executive - Americas (East)",
+      "department": "Sales",
+      "team": "Sales",
+      "employmentType": "FullTime",
+      "location": "Remote - US",
+      "secondaryLocations": [
+        {
+          "location": "Austin",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "Texas",
+              "addressCountry": "USA",
+              "addressLocality": "Austin"
+            }
+          }
+        },
+        {
+          "location": "Atlanta",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "Georgia",
+              "addressCountry": "USA",
+              "addressLocality": "Atlanta"
+            }
+          }
+        },
+        {
+          "location": "Waterloo",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "Ontario",
+              "addressCountry": "Canada",
+              "addressLocality": "Waterloo"
+            }
+          }
+        },
+        {
+          "location": "Boston",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "Massachusetts",
+              "addressCountry": "USA",
+              "addressLocality": "Boston"
+            }
+          }
+        },
+        {
+          "location": "Remote - Canada",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "",
+              "addressCountry": "Canada",
+              "addressLocality": ""
+            }
+          }
+        },
+        {
+          "location": "New York",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "New York",
+              "addressCountry": "USA",
+              "addressLocality": "New York"
+            }
+          }
+        },
+        {
+          "location": "Montreal",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "Quebec",
+              "addressCountry": "Canada",
+              "addressLocality": "Montreal"
+            }
+          }
+        },
+        {
+          "location": "Ann Arbor",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "Michigan",
+              "addressCountry": "USA",
+              "addressLocality": "Ann Arbor"
+            }
+          }
+        },
+        {
+          "location": "Toronto",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "Ontario",
+              "addressCountry": "Canada",
+              "addressLocality": "Toronto"
+            }
+          }
+        },
+        {
+          "location": "Chicago",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "Illinois",
+              "addressCountry": "USA",
+              "addressLocality": "Chicago"
+            }
+          }
+        },
+        {
+          "location": "Raleigh",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "North Carolina",
+              "addressCountry": "USA",
+              "addressLocality": "Raleigh"
+            }
+          }
+        }
+      ],
+      "publishedAt": "2026-03-06T19:44:07.066+00:00",
+      "isListed": true,
+      "isRemote": true,
+      "workplaceType": "Remote",
+      "address": {
+        "postalAddress": {
+          "addressRegion": "",
+          "addressCountry": "United States",
+          "addressLocality": ""
+        }
+      },
+      "jobUrl": "https://jobs.ashbyhq.com/Ashby/36df1986-8af2-4cc4-a96a-4f307d493ac0",
+      "applyUrl": "https://jobs.ashbyhq.com/Ashby/36df1986-8af2-4cc4-a96a-4f307d493ac0/application",
+      "descriptionHtml": "<h2>Why Join Sales at Ashby</h2><p style=\"min-height:1.5em\">Sales at Ashby is a unique opportunity to sell a <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.ashbyhq.com/customers\"><u>product customers genuinely love</u></a> during an AI-fueled market expansion. Over 5,000 companies rely on Ashby including Shopify, Snowflake, OpenAI, Bolt, and Notion, and our business is durably growing faster than 100% year-over-year. <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.ashbyhq.com/blog/culture/series-d\"><u>We’re well funded</u></a>, and on a path to profitability. That's exceptionally rare for a company at our scale, and puts us in the top 10% of benchmarks.</p><p style=\"min-height:1.5em\">We have, in just a few years, replaced incumbents Greenhouse and Lever more than 500 times <em>each,</em> clear evidence of strong product-market fit and a meaningful opportunity to help modern teams move beyond legacy recruiting software. Ashby replaces 3-5 tools in a consolidation &amp; efficiency play that’s equally loved by recruiters and CFOs. We’re known as a <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.ashbyhq.com/ai\"><u>clear AI-leader</u></a> in the recruiting space.</p><p style=\"min-height:1.5em\">And the market opportunity is growing. We are rapidly extending from a best-in-class recruiting product toward a multi-product platform, expanding upmarket, into new industries, and internationally. For sales reps, that means a large market full of legacy tools, and a product portfolio that creates room for both new business and expansion. This is a chance to participate in how a category-defining company wins in its next phase of growth.</p><p style=\"min-height:1.5em\">We are equally intentional about how we build the business. We have established a remote-first, high-performing sales organization that rewards learning and accountability. We <a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"https://www.ashbyhq.com/blog/culture/how-we-think-about-sales-quotas-and-incentives-at-ashby\"><u>use data to set achievable quotas</u></a>, and reward sustained impact with competitive compensation and meaningful upside. We prioritize coaching and career development, with AEs advancing to Enterprise &amp; Leadership roles in just a few years — 38% of the team who have been here more than a year have been promoted or taken on a new role!</p>",
+      "descriptionPlain": "WHY JOIN SALES AT ASHBY\n\nSales at Ashby is a unique opportunity to sell a product customers genuinely love https://www.ashbyhq.com/customers during an AI-fueled market expansion. Over 5,000 companies rely on Ashby including Shopify, Snowflake, OpenAI, Bolt, and Notion, and our business is durably growing faster than 100% year-over-year. We’re well funded https://www.ashbyhq.com/blog/culture/series-d, and on a path to profitability. That's exceptionally rare for a company at our scale, and puts us in the top 10% of benchmarks.\n\nWe have, in just a few years, replaced incumbents Greenhouse and Lever more than 500 times each, clear evidence of strong product-market fit and a meaningful opportunity to help modern teams move beyond legacy recruiting software. Ashby replaces 3-5 tools in a consolidation & efficiency play that’s equally loved by recruiters and CFOs. We’re known as a clear AI-leader https://www.ashbyhq.com/ai in the recruiting space.\n\nAnd the market opportunity is growing. We are rapidly extending from a best-in-class recruiting product toward a multi-product platform, expanding upmarket, into new industries, and internationally. For sales reps, that means a large market full of legacy tools, and a product portfolio that creates room for both new business and expansion. This is a chance to participate in how a category-defining company wins in its next phase of growth.\n\nWe are equally intentional about how we build the business. We have established a remote-first, high-performing sales organization that rewards learning and accountability. We use data to set achievable quotas https://www.ashbyhq.com/blog/culture/how-we-think-about-sales-quotas-and-incentives-at-ashby, and reward sustained impact with competitive compensation and meaningful upside. We prioritize coaching and career development, with AEs advancing to Enterprise & Leadership roles in just a few years — 38% of the team who have been here more than a year have been promoted or taken on a new role!"
+    },
+    {
+      "id": "c62ec47a-8de9-4781-b1f7-563a229c4e90",
+      "title": "GTM Systems Analyst",
+      "department": "Sales",
+      "team": "Revenue Operations",
+      "employmentType": "FullTime",
+      "location": "Remote - US",
+      "secondaryLocations": [
+        {
+          "location": "Remote - European Union",
+          "address": {
+            "postalAddress": {
+              "postalCode": "",
+              "addressRegion": "",
+              "addressCountry": "European Union",
+              "addressLocality": ""
+            }
+          }
+        },
+        {
+          "location": "Remote - Canada",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "",
+              "addressCountry": "Canada",
+              "addressLocality": ""
+            }
+          }
+        },
+        {
+          "location": "Ireland",
+          "address": {
+            "postalAddress": {
+              "addressRegion": "",
+              "addressCountry": "Ireland",
+              "addressLocality": ""
+            }
+          }
+        }
+      ],
+      "publishedAt": "2026-08-27T15:22:29.182+00:00",
+      "isListed": true,
+      "isRemote": true,
+      "workplaceType": "Remote",
+      "address": {
+        "postalAddress": {
+          "addressRegion": "",
+          "addressCountry": "United States",
+          "addressLocality": ""
+        }
+      },
+      "jobUrl": "https://jobs.ashbyhq.com/Ashby/c62ec47a-8de9-4781-b1f7-563a229c4e90",
+      "applyUrl": "https://jobs.ashbyhq.com/Ashby/c62ec47a-8de9-4781-b1f7-563a229c4e90/application",
+      "descriptionHtml": "<h2><strong>The Role</strong></h2><p style=\"min-height:1.5em\">Ashby's GTM engine runs on a set of interconnected systems. Keeping them accurate, efficient, and trusted is the foundation everything else is built on. As our GTM Systems Analyst, you'll own the daily maintenance and configuration of technical layer that powers our Go-to-Market organization: the CRM configurations, integration architecture, and data quality practices that let our Sales, Marketing, and Customer Success teams move fast with confidence.</p><p style=\"min-height:1.5em\">This role sits within Revenue Operations, the horizontal function that makes the entire GTM system work. You'll be embedded in daily operations (triaging issues, implementing new tooling, and translating business requirements into scalable configurations) while also contributing to longer-term systems strategy as we move up-market and expand our product suite.</p><p style=\"min-height:1.5em\"></p><h3><strong>Why this role matters now</strong></h3><p style=\"min-height:1.5em\"><em>We're in an active expansion phase: new products, new segments, new GTM motions. Our systems need to keep pace. The person in this role will shape how we build the technical foundation for the next chapter of Ashby's growth.</em></p><p style=\"min-height:1.5em\"></p><h2><strong>What You'll Do</strong></h2><ul style=\"min-height:1.5em\"><li><p style=\"min-height:1.5em\"><strong>System Administration: </strong>Own the day-to-day health of our core GTM platforms. You'll manage configuration, user permissions, custom objects, and workflow automation across our CRM stack — making sure the systems actually reflect how our teams work, not just how they were set up two years ago.</p></li><li><p style=\"min-height:1.5em\"><strong>Integration Support: </strong>Maintain clean data flows across our GTM toolset ( including intent data, conversation intelligence, and sales engagement platforms). You'll be the person who knows how signals travel between systems and why, and who makes sure they're flowing reliably.</p>",
+      "descriptionPlain": "THE ROLE\n\nAshby's GTM engine runs on a set of interconnected systems. Keeping them accurate, efficient, and trusted is the foundation everything else is built on. As our GTM Systems Analyst, you'll own the daily maintenance and configuration of technical layer that powers our Go-to-Market organization: the CRM configurations, integration architecture, and data quality practices that let our Sales, Marketing, and Customer Success teams move fast with confidence.\n\nThis role sits within Revenue Operations, the horizontal function that makes the entire GTM system work. You'll be embedded in daily operations (triaging issues, implementing new tooling, and translating business requirements into scalable configurations) while also contributing to longer-term systems strategy as we move up-market and expand our product suite.\n\n\n\n\nWHY THIS ROLE MATTERS NOW\n\nWe're in an active expansion phase: new products, new segments, new GTM motions. Our systems need to keep pace. The person in this role will shape how we build the technical foundation for the next chapter of Ashby's growth.\n\n\n\n\nWHAT YOU'LL DO\n\n - System Administration: Own the day-to-day health of our core GTM platforms. You'll manage configuration, user permissions, custom objects, and workflow automation across our CRM stack — making sure the systems actually reflect how our teams work, not just how they were set up two years ago.\n\n - Integration Support: Maintain clean data flows across our GTM toolset ( including intent data, conversation intelligence, and sales engagement platforms). You'll be the person who knows how signals travel between systems and why, and who makes sure they're flowing reliably."
+    }
+  ]
+}
