@@ -1,0 +1,202 @@
+[
+  {
+    "additionalPlain": "Lever builds modern recruiting software for teams to source, interview, and hire top talent. Our team strives to set a new bar for enterprise software with modern, well-designed, real-time apps. We participated in Y Combinator in summer 2012, and since then have raised $73 million. As the applicant tracking system of choice for Netflix, Eventbrite, ClearSlide, change.org, and thousands more leading companies, Lever means you hire the best by hiring together.\n\nLever is an equal opportunity employer. We are committed to providing reasonable accommodations and will work with you to meet your needs. If you are a person with a disability and require assistance during the application process, please don’t hesitate to reach out! We celebrate our inclusive work environment and welcome members of all backgrounds and perspectives. Learn more about our team culture and commitment to diversity and inclusion. \n",
+    "additional": "<div>\n<h2>Why Join Us</h2>\n<ul data-spread=\"false\">\n<li>Work alongside a collaborative and high-performing sales organization.</li>\n<li>Have a meaningful impact on complex customer decisions and revenue growth.</li>\n<li>Work with modern cloud technology and solve challenging customer problems.</li>\n<li>Collaborate with Product and Engineering teams and have a voice in product development.</li>\n<li>Develop your technical, consulting, presentation, and commercial skills.</li>\n<li>Work in an environment that values curiosity, ownership, and continuous learning.</li>\n</ul>\n</div><div><br></div><div>Lever builds modern recruiting software for teams to source, interview, and hire top talent. Our team strives to set a new bar for enterprise software with modern, well-designed, real-time apps. We participated in Y Combinator in summer 2012, and since then have raised $73 million. As the applicant tracking system of choice for Netflix, Eventbrite, ClearSlide, change.org, and thousands more leading companies, Lever means you hire the best by hiring together.</div><div><br></div><div>Lever is an equal opportunity employer. We are committed to providing reasonable accommodations and will work with you to meet your needs. If you are a person with a disability and require assistance during the application process, please don’t hesitate to reach out! We celebrate our inclusive work environment and welcome members of all backgrounds and perspectives.&nbsp;<a class=\"postings-link\" href=\"https://inside.lever.co/\">Learn more about our team culture and commitment to diversity and inclusion.</a>&nbsp;</div>",
+    "categories": {
+      "commitment": "Regular Full Time (Salary)",
+      "department": "Business Development",
+      "location": "Atlanta, Georgia",
+      "team": "Special Sales Development",
+      "allLocations": [
+        "Atlanta, Georgia",
+        "Arlington, TX",
+        "Boston, MA"
+      ]
+    },
+    "createdAt": 1788288308535,
+    "descriptionPlain": "Welcome to the Demo Job Listing for Lever! This is a fictional job created solely for demonstration purposes and is not an actual open position. We’ve crafted this listing to showcase the functionality of our ATS platform, including job descriptions, application processes, and more.\n\nWhile you can explore the application process and features here, please note that applications submitted to this job will not be reviewed or responded to as it’s for demonstration only. \n",
+    "description": "<div>Welcome to the <b>Demo Job Listing</b> for Lever! This is a fictional job created solely for demonstration purposes and is <b>not an actual open position</b>. We’ve crafted this listing to showcase the functionality of our ATS platform, including job descriptions, application processes, and more.</div><div><br></div><div>While you can explore the application process and features here, please note that <b>applications submitted to this job will not be reviewed or responded to</b> as it’s for demonstration only. </div><div><br></div><p>We are looking for a highly motivated and technically curious <strong>Sales Engineer</strong> to partner with our sales team throughout the customer journey. In this role, you will serve as a trusted technical advisor to prospective customers, helping them understand how our platform can address their business and technical requirements.</p>\n<p>You will work closely with Account Executives to lead discovery sessions, deliver tailored product demonstrations, develop technical solutions, and respond to complex customer requirements. The ideal candidate can translate technical concepts into clear business value and is comfortable working with both technical and executive stakeholders.</p>\n<p>This is an excellent opportunity for someone who enjoys solving complex problems, presenting technology, and playing a key role in competitive enterprise sales cycles.</p>",
+    "id": "58db3f8e-b108-47d1-9e6e-87a1712497cd",
+    "lists": [
+      {
+        "text": "What You'll Do",
+        "content": "<div>\n<ul data-spread=\"false\">\n<li>Partner with Account Executives to understand customer business objectives, technical requirements, and buying criteria.</li>\n<li>Lead technical discovery sessions with prospective customers and identify opportunities to align product capabilities with customer needs.</li>\n<li>Deliver compelling, customized product demonstrations tailored to different audiences and use cases.</li>\n<li>Develop technical presentations, solution architectures, proof-of-concept demonstrations, and other sales materials.</li>\n<li>Respond to RFPs, RFIs, security questionnaires, and detailed technical requirements.</li>\n<li>Translate complex technical concepts into clear, compelling business value for both technical and non-technical audiences.</li>\n<li>Serve as a technical subject matter expert throughout the sales process.</li>\n<li>Collaborate with Product, Engineering, Customer Success, and other internal teams to address customer requirements and feedback.</li>\n<li>Support proof-of-concept and evaluation processes, including defining success criteria and demonstrating relevant product capabilities.</li>\n<li>Identify potential technical risks, integration considerations, and implementation requirements early in the sales cycle.</li>\n<li>Participate in competitive evaluations and help develop strategies to differentiate our solution.</li>\n<li>Maintain strong relationships with prospective customers and become a trusted technical resource throughout the buying process.</li>\n<li>Contribute to the development of sales engineering processes, demo environments, technical content, and enablement materials.</li>\n<li>Stay current on product capabilities, industry trends, competitive solutions, and emerging technologies.</li>\n\n</ul></div>"
+      },
+      {
+        "text": "What We're Looking For",
+        "content": "<div>\n<ul data-spread=\"false\">\n<li>3+ years of experience in Sales Engineering, Solutions Consulting, Solutions Architecture, Technical Consulting, or a related customer-facing technical role.</li>\n<li>Experience supporting complex B2B or enterprise sales cycles.</li>\n<li>Strong presentation and communication skills with the ability to engage audiences ranging from technical practitioners to executive decision-makers.</li>\n<li>Demonstrated ability to understand customer requirements and translate them into effective technical solutions.</li>\n<li>Comfort working with APIs, integrations, data flows, and common enterprise technology concepts.</li>\n<li>Strong problem-solving and analytical skills.</li>\n<li>Ability to manage multiple opportunities and priorities in a fast-paced environment.</li>\n<li>Experience responding to RFPs, RFIs, security questionnaires, or technical due diligence is a plus.</li>\n<li>Ability to work effectively as part of a cross-functional team.</li>\n<li>Strong attention to detail and excellent organizational skills.</li>\n<li>Willingness to learn new technologies and develop deep expertise in our product.</li>\n\n</ul></div>"
+      },
+      {
+        "text": "Nice to Have",
+        "content": "<div>\n<ul data-spread=\"false\">\n<li>Experience selling SaaS or other cloud-based technology.</li>\n<li>Experience supporting enterprise customers.</li>\n<li>Familiarity with REST APIs, webhooks, SSO, SCIM, data integrations, and security concepts.</li>\n<li>Experience with CRM, ATS, HR technology, or other enterprise business applications.</li>\n<li>Experience leading technical discovery and solution design sessions.</li>\n<li>Experience with proof-of-concept development or technical evaluations.</li>\n<li>Familiarity with competitive sales processes and value-based selling methodologies.</li>\n\n</ul></div>"
+      },
+      {
+        "text": "What Success Looks Like",
+        "content": "<p>Within your first six months, you will have developed strong expertise in our platform, established effective partnerships with the sales team, and independently led technical discovery and demonstrations. You will become a trusted resource for customers and internal stakeholders and contribute directly to advancing opportunities through the sales cycle.</p>\n<p>Over time, success in this role means consistently helping customers understand the value of our technology, removing technical barriers to purchase, improving sales efficiency, and contributing to successful customer outcomes.</p>"
+      }
+    ],
+    "text": "Sales Engineer AH",
+    "country": "US",
+    "workplaceType": "remote",
+    "opening": "<div>Welcome to the <b>Demo Job Listing</b> for Lever! This is a fictional job created solely for demonstration purposes and is <b>not an actual open position</b>. We’ve crafted this listing to showcase the functionality of our ATS platform, including job descriptions, application processes, and more.</div><div><br></div><div>While you can explore the application process and features here, please note that <b>applications submitted to this job will not be reviewed or responded to</b> as it’s for demonstration only. </div>",
+    "openingPlain": "Welcome to the Demo Job Listing for Lever! This is a fictional job created solely for demonstration purposes and is not an actual open position. We’ve crafted this listing to showcase the functionality of our ATS platform, including job descriptions, application processes, and more.\n\nWhile you can explore the application process and features here, please note that applications submitted to this job will not be reviewed or responded to as it’s for demonstration only. \n",
+    "descriptionBody": "<p>We are looking for a highly motivated and technically curious <strong>Sales Engineer</strong> to partner with our sales team throughout the customer journey. In this role, you will serve as a trusted technical advisor to prospective customers, helping them understand how our platform can address their business and technical requirements.</p>\n<p>You will work closely with Account Executives to lead discovery sessions, deliver tailored product demonstrations, develop technical solutions, and respond to complex customer requirements. The ideal candidate can translate technical concepts into clear business value and is comfortable working with both technical and executive stakeholders.</p>\n<p>This is an excellent opportunity for someone who enjoys solving complex problems, presenting technology, and playing a key role in competitive enterprise sales cycles.</p>",
+    "descriptionBodyPlain": "",
+    "hostedUrl": "https://jobs.lever.co/leverdemo/58db3f8e-b108-47d1-9e6e-87a1712497cd",
+    "applyUrl": "https://jobs.lever.co/leverdemo/58db3f8e-b108-47d1-9e6e-87a1712497cd/apply"
+  },
+  {
+    "additionalPlain": "Lever builds modern recruiting software for teams to source, interview, and hire top talent. Our team strives to set a new bar for enterprise software with modern, well-designed, real-time apps. We participated in Y Combinator in summer 2012, and since then have raised $73 million. As the applicant tracking system of choice for Netflix, Eventbrite, ClearSlide, change.org, and thousands more leading companies, Lever means you hire the best by hiring together.\n\nLever is an equal opportunity employer. We are committed to providing reasonable accommodations and will work with you to meet your needs. If you are a person with a disability and require assistance during the application process, please don’t hesitate to reach out! We celebrate our inclusive work environment and welcome members of all backgrounds and perspectives. Learn more about our team culture and commitment to diversity and inclusion. \n",
+    "additional": "<div>Lever builds modern recruiting software for teams to source, interview, and hire top talent. Our team strives to set a new bar for enterprise software with modern, well-designed, real-time apps. We participated in Y Combinator in summer 2012, and since then have raised $73 million. As the applicant tracking system of choice for Netflix, Eventbrite, ClearSlide, change.org, and thousands more leading companies, Lever means you hire the best by hiring together.</div><div><br></div><div>Lever is an equal opportunity employer. We are committed to providing reasonable accommodations and will work with you to meet your needs. If you are a person with a disability and require assistance during the application process, please don’t hesitate to reach out! We celebrate our inclusive work environment and welcome members of all backgrounds and perspectives.&nbsp;<a class=\"postings-link\" href=\"https://inside.lever.co/\">Learn more about our team culture and commitment to diversity and inclusion.</a>&nbsp;</div>",
+    "categories": {
+      "commitment": "Regular Full Time (Salary)",
+      "department": "Finance",
+      "location": "New York, New York",
+      "team": "Accounting Advisory",
+      "allLocations": [
+        "New York, New York"
+      ]
+    },
+    "createdAt": 1556222002880,
+    "descriptionPlain": "Welcome to the Demo Job Listing for Lever! This is a fictional job created solely for demonstration purposes and is not an actual open position. We’ve crafted this listing to showcase the functionality of our ATS platform, including job descriptions, application processes, and more.\n\nWhile you can explore the application process and features here, please note that applications submitted to this job will not be reviewed or responded to as it’s for demonstration only. \n\n\nThe Staff Accountant position requires candidates capable of fulfilling a broad range of duties and responsibilities, such as helping small businesses maintain accounting best practices. \n",
+    "description": "<div>Welcome to the <b>Demo Job Listing</b> for Lever! This is a fictional job created solely for demonstration purposes and is <b>not an actual open position</b>. We’ve crafted this listing to showcase the functionality of our ATS platform, including job descriptions, application processes, and more.</div><div><br></div><div>While you can explore the application process and features here, please note that <b>applications submitted to this job will not be reviewed or responded to</b> as it’s for demonstration only. </div><div><br></div><div>The Staff Accountant position requires candidates capable of fulfilling a broad range of duties and responsibilities, such as helping small businesses&nbsp;<a rel=\"noopener noreferrer\" class=\"postings-link\" href=\"https://www.indeed.com/hire/c/info/small-business-accounting?co=US\">maintain accounting best practices</a>.&nbsp;</div>",
+    "id": "5243ea1b-f2c0-4f43-8f02-a5dbb97e24cb",
+    "lists": [
+      {
+        "text": "Duties and Responsibilities include:",
+        "content": "<li>Planning, implementing and supervising the company’s financial strategy</li><li>Managing the company’s financial accounts, payroll, budget, cash receipts and financial assets</li><li>Handling the company’s transactions and debts and doing cash flow forecasting</li><li>Performing the company’s&nbsp;<a rel=\"noopener noreferrer\" class=\"postings-link\" href=\"https://www.indeed.com/hire/how-to-hire/internal-auditor?co=US\">financial audits</a></li><li>Following proper accounting procedures to reach financial objectives</li><li>Monitoring and analyzing financial accounting data</li><li>Creating financial reports based on data analysis</li><li>Making recommendations to business stakeholdersThis is an accounting role... </li>"
+      },
+      {
+        "text": "Skills",
+        "content": "<li>Great interpersonal and verbal communication skills</li><li>Sound knowledge of accounting principles, standards and regulations</li><li>Experience with accounting software and databases</li><li>Superior data management and data analysis skills</li><li>Strong&nbsp;<a rel=\"noopener noreferrer\" class=\"postings-link\" href=\"https://www.indeed.com/hire/c/info/pomodoro-technique-time-management-for-managers-and-their-employees?co=US\">time management</a>&nbsp;and organizational skills</li><li>Detail-oriented with a passion for accuracy</li><li>Work experience as an Accounting Manager or Finance Manager,&nbsp;preferably 2 or more years</li>"
+      }
+    ],
+    "salaryRange": {
+      "min": 95000,
+      "max": 115000,
+      "currency": "USD",
+      "interval": "per-year-salary"
+    },
+    "text": "Staff Accountant",
+    "country": "US",
+    "workplaceType": "hybrid",
+    "opening": "<div>Welcome to the <b>Demo Job Listing</b> for Lever! This is a fictional job created solely for demonstration purposes and is <b>not an actual open position</b>. We’ve crafted this listing to showcase the functionality of our ATS platform, including job descriptions, application processes, and more.</div><div><br></div><div>While you can explore the application process and features here, please note that <b>applications submitted to this job will not be reviewed or responded to</b> as it’s for demonstration only. </div>",
+    "openingPlain": "Welcome to the Demo Job Listing for Lever! This is a fictional job created solely for demonstration purposes and is not an actual open position. We’ve crafted this listing to showcase the functionality of our ATS platform, including job descriptions, application processes, and more.\n\nWhile you can explore the application process and features here, please note that applications submitted to this job will not be reviewed or responded to as it’s for demonstration only. \n",
+    "descriptionBody": "<div>The Staff Accountant position requires candidates capable of fulfilling a broad range of duties and responsibilities, such as helping small businesses&nbsp;<a href=\"https://www.indeed.com/hire/c/info/small-business-accounting?co=US\" class=\"postings-link\" target=\"_blank\" rel=\"noopener noreferrer\">maintain accounting best practices</a>.&nbsp;</div>",
+    "descriptionBodyPlain": "The Staff Accountant position requires candidates capable of fulfilling a broad range of duties and responsibilities, such as helping small businesses maintain accounting best practices. \n",
+    "hostedUrl": "https://jobs.lever.co/leverdemo/5243ea1b-f2c0-4f43-8f02-a5dbb97e24cb",
+    "applyUrl": "https://jobs.lever.co/leverdemo/5243ea1b-f2c0-4f43-8f02-a5dbb97e24cb/apply"
+  },
+  {
+    "additional": "",
+    "additionalPlain": "",
+    "categories": {
+      "commitment": "Regular Full Time (Salary)",
+      "department": "People (HR)",
+      "location": "Houston, TX",
+      "team": "People",
+      "allLocations": [
+        "Houston, TX"
+      ]
+    },
+    "createdAt": 1787600587936,
+    "description": "",
+    "descriptionPlain": "",
+    "id": "120b5976-ee4e-4dc5-b31b-2b1ca124460c",
+    "lists": [
+      {
+        "text": "Key Responsibilities",
+        "content": "<div>\n\n<li data-section-id=\"nckdia\" data-start=\"858\" data-end=\"939\">Perform comprehensive dental examinations, evaluations, and treatment planning.</li>\n<li data-section-id=\"16bo02r\" data-start=\"940\" data-end=\"1017\">Diagnose oral health conditions and develop individualized treatment plans.</li>\n<li data-section-id=\"itd6iv\" data-start=\"1018\" data-end=\"1139\">Provide general dentistry services, including fillings, crowns, bridges, extractions, and other restorative procedures.</li>\n<li data-section-id=\"c1isa8\" data-start=\"1140\" data-end=\"1206\">Review and interpret dental X-rays and other diagnostic imaging.</li>\n<li data-section-id=\"1a34nlf\" data-start=\"1207\" data-end=\"1252\">Administer local anesthesia as appropriate.</li>\n<li data-section-id=\"1he3ojs\" data-start=\"1253\" data-end=\"1313\">Perform routine and complex restorative dental procedures.</li>\n<li data-section-id=\"omo4f\" data-start=\"1314\" data-end=\"1389\">Educate patients on oral hygiene, preventive care, and treatment options.</li>\n<li data-section-id=\"1u75z9b\" data-start=\"1390\" data-end=\"1492\">Maintain accurate and detailed patient records in accordance with clinical and regulatory standards.</li>\n<li data-section-id=\"n4j9c4\" data-start=\"1493\" data-end=\"1595\">Clearly explain diagnoses, treatment recommendations, risks, benefits, and alternatives to patients.</li>\n<li data-section-id=\"syzlp3\" data-start=\"1596\" data-end=\"1662\">Monitor patient progress and provide appropriate follow-up care.</li>\n<li data-section-id=\"u445r3\" data-start=\"1663\" data-end=\"1765\">Collaborate with Dental Assistants and Hygienists to ensure efficient patient flow and quality care.</li>\n<li data-section-id=\"vn888i\" data-start=\"1766\" data-end=\"1837\">Maintain strict infection-control, OSHA, HIPAA, and safety standards.</li>\n<li data-section-id=\"1guzjbt\" data-start=\"1838\" data-end=\"1933\">Stay current with developments in dentistry, technology, materials, and treatment techniques.</li>\n<li data-section-id=\"10dkmjs\" data-start=\"1934\" data-end=\"2001\">Participate in continuing education and professional development.</li>\n<li data-section-id=\"1qvehgq\" data-start=\"2002\" data-end=\"2070\">Build trust and positive relationships with patients and families.</li>\n<li data-section-id=\"ctbbd9\" data-start=\"2071\" data-end=\"2146\">Contribute to a collaborative, professional, and positive office culture.</li>\n\n</div>"
+      },
+      {
+        "text": "Qualifications",
+        "content": "<div>\n\n<li data-section-id=\"1rjlo9p\" data-start=\"2167\" data-end=\"2275\">Doctor of Dental Surgery (DDS) or Doctor of Dental Medicine (DMD) degree from an accredited dental school.</li>\n<li data-section-id=\"6qg2fx\" data-start=\"2276\" data-end=\"2323\">Active and unrestricted state dental license.</li>\n<li data-section-id=\"153hf6s\" data-start=\"2324\" data-end=\"2356\">Current CPR/BLS certification.</li>\n<li data-section-id=\"ctmppi\" data-start=\"2357\" data-end=\"2406\">DEA registration, if required for the position.</li>\n<li data-section-id=\"10mps44\" data-start=\"2407\" data-end=\"2478\">Proven experience providing comprehensive general dentistry services.</li>\n<li data-section-id=\"1a1cw9q\" data-start=\"2479\" data-end=\"2563\">Strong knowledge of dental procedures, treatment planning, and clinical protocols.</li>\n<li data-section-id=\"8kkx42\" data-start=\"2564\" data-end=\"2616\">Excellent written and verbal communication skills.</li>\n<li data-section-id=\"1j0sw88\" data-start=\"2617\" data-end=\"2676\">Strong diagnostic and clinical decision-making abilities.</li>\n<li data-section-id=\"1nzw38g\" data-start=\"2677\" data-end=\"2711\">Exceptional attention to detail.</li>\n<li data-section-id=\"brrxt9\" data-start=\"2712\" data-end=\"2803\">Ability to work effectively with Dental Assistants, Hygienists, and administrative staff.</li>\n<li data-section-id=\"v14dcz\" data-start=\"2804\" data-end=\"2869\">Strong commitment to patient safety, comfort, and satisfaction.</li>\n<li data-section-id=\"1mkvkkn\" data-start=\"2870\" data-end=\"2932\">Ability to work efficiently in a fast-paced dental practice.</li>\n\n</div>"
+      },
+      {
+        "text": "Preferred Qualifications",
+        "content": "<div>\n\n<li data-section-id=\"1lg0jm\" data-start=\"2963\" data-end=\"3017\">2+ years of experience practicing general dentistry.</li>\n<li data-section-id=\"hjne3p\" data-start=\"3018\" data-end=\"3086\">Experience with digital radiography and electronic dental records.</li>\n<li data-section-id=\"1kovo4v\" data-start=\"3087\" data-end=\"3161\">Experience with crowns, bridges, restorative dentistry, and extractions.</li>\n<li data-section-id=\"akrl1r\" data-start=\"3162\" data-end=\"3235\">Experience with Dentrix or similar dental practice management software.</li>\n<li data-section-id=\"10w0gbq\" data-start=\"3236\" data-end=\"3299\">Membership in the ADA or applicable state dental association.</li>\n<li data-section-id=\"1i74am1\" data-start=\"3300\" data-end=\"3354\">Experience working in a high-volume dental practice.</li>\n\n</div>"
+      },
+      {
+        "text": "What We Offer",
+        "content": "<div>\n\n<li data-section-id=\"1bxst2z\" data-start=\"3374\" data-end=\"3400\">Competitive compensation</li>\n<li data-section-id=\"1r21llz\" data-start=\"3401\" data-end=\"3433\">Monthly performance incentives</li>\n<li data-section-id=\"tqerr2\" data-start=\"3434\" data-end=\"3472\">Medical, dental, and vision benefits</li>\n<li data-section-id=\"krmiw1\" data-start=\"3473\" data-end=\"3500\">401(k) with company match</li>\n<li data-section-id=\"o6r2y6\" data-start=\"3501\" data-end=\"3516\">Paid time off</li>\n<li data-section-id=\"1gdchmh\" data-start=\"3517\" data-end=\"3532\">Paid holidays</li>\n<li data-section-id=\"1tkq1kp\" data-start=\"3533\" data-end=\"3569\">Continuing education opportunities</li>\n<li data-section-id=\"6dc5d2\" data-start=\"3570\" data-end=\"3610\">Modern dental technology and equipment</li>\n<li data-section-id=\"14uf4i7\" data-start=\"3611\" data-end=\"3637\">Supportive clinical team</li>\n<li data-section-id=\"tx4ksd\" data-start=\"3638\" data-end=\"3672\">Career advancement opportunities</li>\n<li data-section-id=\"1js1r89\" data-start=\"3673\" data-end=\"3725\">Collaborative and patient-focused work environment</li>\n\n</div>"
+      }
+    ],
+    "salaryRange": {
+      "min": 150000,
+      "max": 185000,
+      "currency": "USD",
+      "interval": "per-year-salary"
+    },
+    "text": "Dentist",
+    "country": "US",
+    "workplaceType": "onsite",
+    "opening": "",
+    "openingPlain": "",
+    "descriptionBody": "",
+    "descriptionBodyPlain": "",
+    "hostedUrl": "https://jobs.lever.co/leverdemo/120b5976-ee4e-4dc5-b31b-2b1ca124460c",
+    "applyUrl": "https://jobs.lever.co/leverdemo/120b5976-ee4e-4dc5-b31b-2b1ca124460c/apply"
+  },
+  {
+    "additionalPlain": "Best of luck! \n",
+    "additional": "<div>Best of luck! </div>",
+    "categories": {
+      "department": "Sales",
+      "location": "Toronto, Ontario",
+      "team": "Sales Engineering",
+      "allLocations": [
+        "Toronto, Ontario"
+      ]
+    },
+    "createdAt": 1499363737955,
+    "descriptionPlain": "Lever is looking for an experienced Solutions Engineer to join our growing go-to-market team. In this role, you’ll work directly with sales, product, and customer success to help establish a clear fit for the Sisu platform within our customers’ analytics and business intelligence workflows. In addition to helping bring new customers to the platform, you’ll lead the technical pre-sales relationship, develop new technical architectures, and offer creative solutions to unique problems.\n\nYou’ll also act as a critical liaison between Sales and Product, sharing critical feedback with the Product and Marketing teams, to inform the roadmap and go-to-market strategy for our operational analytics platform. In your daily interactions with customers, you’ll have the chance to combine your practical knowledge of analytics and data science workflows with a desire to tinker, whiteboard, brainstorm, and figure out better ways to solve tough problems.\n\nOn our small, dynamic team, you’ll have opportunities beyond customer engagements as well. Our Solutions Engineers help mentor new team members, present at events large and small, and help author content read by a global audience. \n",
+    "description": "<div><span style=\"font-size: 16px;\">Lever is looking for an experienced Solutions Engineer to join our growing go-to-market team. In this role, you’ll work directly with sales, product, and customer success to help establish a clear fit for the Sisu platform within our customers’ analytics and business intelligence workflows.&nbsp;In addition to helping bring new customers to the platform, you’ll&nbsp;lead the technical pre-sales relationship, develop new technical architectures, and offer creative solutions to unique problems.</span></div><div><br></div><div><span style=\"font-size: 16px;\">You’ll also act as a critical liaison between Sales and Product, sharing critical feedback with the Product and Marketing teams, to inform the roadmap and go-to-market strategy for our operational analytics platform. In your daily interactions with customers, you’ll have the chance to combine your practical knowledge of analytics and data science workflows with a desire to tinker, whiteboard, brainstorm, and figure out better ways to solve tough problems.</span></div><div><br></div><div><span style=\"font-size: 16px;\">On our small, dynamic team, you’ll have opportunities beyond customer engagements as well. Our Solutions Engineers help mentor new team members, present at events large and small, and help author content read by a global audience.&nbsp;</span></div>",
+    "id": "d3afdff4-3005-4d29-a548-3b106436eabe",
+    "lists": [
+      {
+        "text": "What you'll accomplish:",
+        "content": "<li>Work closely with account executives, product, marketing, and leadership to assess, develop, and accelerate key opportunities with global brands</li><li>Maintain and execute a repeatable technical sales process, involving data preparation, analysis, and executive presentation</li><li>Design and manage successful POCs and help deliver effective solutions to global&nbsp;enterprises</li><li>Influence the business case for product roadmap decisions and new investments</li><li>Bring a deep knowledge of analytics, BI, and data diagnosis </li><li>Deliver insightful, custom&nbsp;demonstrations of the our platform that help customers see the value of an operational analytics platform</li><li>Support field marketing events as an expert and trusted presenter</li>"
+      },
+      {
+        "text": "What you'll need to be successful:",
+        "content": "<li>Creativity, persistence, and inquisitiveness about analytics, BI, and enterprise data warehouses, and the desire to help enterprises solve problems in new ways</li><li>A real passion for cloud technologies that change the way we work</li><li>Stellar interpersonal skills and strong team values</li><li>Extraordinary presentation skills, with the ability to establish trust with a range of technical and non-technical audiences</li><li>Hands-on, high-energy, and creative problem solver with the ability to lead others to success</li><li>Familiarity with cloud platforms (Amazon Web Services, Google Cloud, Microsoft Azure) and cloud application architecture.</li><li>Proven success working cross-functionally with customer success, sales engineering and product teams throughout the product life cycle</li>"
+      }
+    ],
+    "text": "Senior Sales Engineer",
+    "country": "CA",
+    "workplaceType": "onsite",
+    "opening": "",
+    "openingPlain": "",
+    "descriptionBody": "<div><span style=\"font-size: 16px;\">Lever is looking for an experienced Solutions Engineer to join our growing go-to-market team. In this role, you’ll work directly with sales, product, and customer success to help establish a clear fit for the Sisu platform within our customers’ analytics and business intelligence workflows.&nbsp;In addition to helping bring new customers to the platform, you’ll&nbsp;lead the technical pre-sales relationship, develop new technical architectures, and offer creative solutions to unique problems.</span></div><div><br></div><div><span style=\"font-size: 16px;\">You’ll also act as a critical liaison between Sales and Product, sharing critical feedback with the Product and Marketing teams, to inform the roadmap and go-to-market strategy for our operational analytics platform. In your daily interactions with customers, you’ll have the chance to combine your practical knowledge of analytics and data science workflows with a desire to tinker, whiteboard, brainstorm, and figure out better ways to solve tough problems.</span></div><div><br></div><div><span style=\"font-size: 16px;\">On our small, dynamic team, you’ll have opportunities beyond customer engagements as well. Our Solutions Engineers help mentor new team members, present at events large and small, and help author content read by a global audience.&nbsp;</span></div>",
+    "descriptionBodyPlain": "Lever is looking for an experienced Solutions Engineer to join our growing go-to-market team. In this role, you’ll work directly with sales, product, and customer success to help establish a clear fit for the Sisu platform within our customers’ analytics and business intelligence workflows. In addition to helping bring new customers to the platform, you’ll lead the technical pre-sales relationship, develop new technical architectures, and offer creative solutions to unique problems.\n\nYou’ll also act as a critical liaison between Sales and Product, sharing critical feedback with the Product and Marketing teams, to inform the roadmap and go-to-market strategy for our operational analytics platform. In your daily interactions with customers, you’ll have the chance to combine your practical knowledge of analytics and data science workflows with a desire to tinker, whiteboard, brainstorm, and figure out better ways to solve tough problems.\n\nOn our small, dynamic team, you’ll have opportunities beyond customer engagements as well. Our Solutions Engineers help mentor new team members, present at events large and small, and help author content read by a global audience. \n",
+    "hostedUrl": "https://jobs.lever.co/leverdemo/d3afdff4-3005-4d29-a548-3b106436eabe",
+    "applyUrl": "https://jobs.lever.co/leverdemo/d3afdff4-3005-4d29-a548-3b106436eabe/apply"
+  },
+  {
+    "additional": "",
+    "additionalPlain": "",
+    "categories": {
+      "commitment": "Regular Full Time (Salary)",
+      "department": "Executive",
+      "location": "London, UK",
+      "team": "Executive",
+      "allLocations": [
+        "London, UK"
+      ]
+    },
+    "createdAt": 1718633877107,
+    "description": "",
+    "descriptionPlain": "",
+    "id": "1dbf02a6-d434-4e47-8d66-3aba2c17bed1",
+    "lists": [],
+    "text": "Director of Diversity, Equity, and Inclusion",
+    "country": "GB",
+    "workplaceType": "onsite",
+    "opening": "",
+    "openingPlain": "",
+    "descriptionBody": "",
+    "descriptionBodyPlain": "",
+    "hostedUrl": "https://jobs.lever.co/leverdemo/1dbf02a6-d434-4e47-8d66-3aba2c17bed1",
+    "applyUrl": "https://jobs.lever.co/leverdemo/1dbf02a6-d434-4e47-8d66-3aba2c17bed1/apply"
+  }
+]
