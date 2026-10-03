@@ -25,7 +25,7 @@ A personal tool that checks a list of target companies' public job boards once a
 
 ## Status
 
-Phase 1 (fetch and store) is in progress. **`fetch` works**: it reads every company's board and records new, seen, and closed postings. **Filtering, reports, and `run` are not built yet** (Phase 2). See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the full phase plan.
+Phase 1 (fetch and store) is complete as of v0.2.0. **`fetch` works**: it reads every company's board and records new, seen, and closed postings, with every failure reported. Next is the aggregator API test checkpoint, then Phase 2. **Filtering, reports, and `run` are not built yet** (Phase 2). See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the full phase plan.
 
 | Phase | What | Release |
 |---|---|---|
