@@ -2,6 +2,14 @@
 
 Owner decisions that change the plan, the rules, or how the tool behaves, newest first. Each entry says what was decided, why, and what it affects. Filter rule changes during Phase 2 tuning are logged here too (issue 2.8).
 
+## 2026-10-03: Aggregator API test result: Adzuna fails, large employers stay manual
+
+**Decision:** Accept the documented result for Adzuna (it fails on complete descriptions), keep large target employers as manual checks, and start Phase 2. No API key was requested.
+
+**Why:** Adzuna's official docs say the API returns only a snippet of each job description. The plan's outcome rule for "fails on complete descriptions" is to record it, keep large employers as manual checks, and move on. A title-and-link feed was considered and set aside as a separate feature. Details are in `docs/aggregator-test.md`.
+
+**Affects:** No code. Phase 2 is designed for full descriptions from Greenhouse, Lever, and Ashby only.
+
 ## 2026-10-03: A board that suddenly returns 0 jobs is a warning, not recorded
 
 **Decision:** When a board answers successfully with 0 jobs while the store still has open postings for it, the fetch shows a WARNING for that company and does **not** record the result. Its postings stay open, and the run exits 1. A board with 0 jobs and nothing open, such as a newly added company with no openings, is just OK.
