@@ -1,6 +1,29 @@
 # Decisions
 
-Owner decisions that change the plan, the rules, or how the tool behaves, newest first. Each entry says what was decided, why, and what it affects. Filter rule changes during Phase 2 tuning are logged here too (issue 2.8).
+Owner decisions that change the plan, the rules, or how the tool behaves, newest first. Each entry says what was decided, why, and what it affects. Filter rule changes during Phase 2 tuning are logged here too (issue 2.8). Because this file is public, rule changes are described in general terms; the specific terms and places live only in the gitignored `config/filters.toml` (design principle 5).
+
+## 2026-10-04: Filter rules tuned after the first real run
+
+**Decision:** After reviewing how the rule engine sorted the first 136 real postings, the owner:
+- added several title terms for roles that were being missed
+- removed two title terms made redundant by singular/plural matching
+- added a fourth, lowest-priority location tier for remote and on-site jobs in a group of countries, with sponsorship required. Some place names and region labels moved from the non-US exclusion list into that tier.
+
+**Why:** The first pass excluded relevant titles over wording differences, and the owner wants a wider net abroad at the lowest priority rather than an outright exclusion.
+
+**Result on the same 136 postings:** 4 Match / 1 Flagged / 131 Excluded became 13 Match / 5 Flagged / 118 Excluded.
+
+**Known limitation:** a tier's country names are matched anywhere in the location text, so a place whose name contains a listed country's name (such as a region or town named after a country) lands in that country's tier. This is rare, so it's accepted rather than handled in the engine.
+
+**Affects:** `config/filters.toml` only (private). No code.
+
+## 2026-10-04: Terms match singular and plural forms
+
+**Decision:** The last word of every filter term also matches its regular singular or plural: solution/solutions, deployment/deployments, process/processes, utility/utilities. Words shorter than 4 letters stay exact.
+
+**Why:** Strict whole-word matching missed real titles over a single "s" ("field service" vs "Field Services Engineer", "solutions" vs "Solution Architect"). Only the last word is inflected, because that's how English pluralizes a phrase. Short terms are mostly codes and abbreviations used by the location rules ("us", "ca", "uk", "vp"), where an added or dropped "s" changes the meaning: "us" must never match "u" or "uss".
+
+**Affects:** `src/jobwatcher/matching.py` (#37). Irregular plurals and other word forms ("deployed" vs "deploys") still need their own terms.
 
 ## 2026-10-03: Aggregator API test result: Adzuna fails, large employers stay manual
 
