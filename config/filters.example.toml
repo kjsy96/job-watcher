@@ -1,0 +1,54 @@
+# Example filter rules. Copy to config/filters.toml (gitignored) and
+# replace with your real rules. All matching is case-insensitive on whole
+# words or phrases, so a short term never matches inside a longer word.
+# See PROJECT_PLAN.md, "Filter outcomes", for how these combine into
+# Match / Flagged / Possible / Excluded.
+
+[roles]
+# Title must contain at least one of these to be considered at all
+title_include = ["implementation", "deployment", "field engineer", "test engineer"]
+title_exclude = ["intern", "vp ", "account executive"]
+
+[domain]
+# Industries and settings, matched in the description or the company's sector
+terms = ["manufacturing", "mining", "energy"]
+
+[work]
+# Kinds of work, matched in the description
+terms = ["feasibility", "commissioning", "data validation"]
+
+[location]
+# Remote roles tied to these places are excluded
+non_us_remote_terms = ["canada", "emea"]
+# Location text that can't be placed with confidence is flagged
+ambiguous_terms = []
+
+[location.tier1]
+label = "Preferred"
+remote_terms = ["remote"]
+us_wide_terms = ["united states"]
+state_codes = ["CO"]
+place_terms = ["denver"]
+
+[location.tier2]
+label = "Acceptable"
+place_terms = ["boulder"]
+
+[location.tier3]
+label = "Abroad, sponsorship needed"
+requires_sponsorship = true
+country_terms = ["example country"]
+pathway_title_terms = ["engineer"]
+pathway_note = "Possible occupation-based work permit route: confirm fit"
+
+[sponsorship]
+hard_no_terms = ["unable to sponsor"]
+eligibility_terms = ["must be eligible to work in example country"]
+positive_terms = ["visa sponsorship"]
+
+[description]
+# Any of these in the description flags the posting for a human look
+flag_terms = ["workshop", "webinar", "train the trainer"]
+
+[travel]
+max_percent = 40  # above this: excluded; not stated: flagged
