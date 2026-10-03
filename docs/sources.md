@@ -16,7 +16,7 @@ All three endpoints are public read-only GETs with no API key. Each returns ever
 | Stable job ID | `id` | `id` | **Not documented** (see below) |
 | Description | HTML, entity-escaped (`content`) | HTML and plain text | HTML and plain text |
 | Remote signal | None (location text only) | `workplaceType` | `isRemote`, `workplaceType` |
-| Posted date | Not in list response | Not documented | `publishedAt` |
+| Posted date | `first_published` (undocumented in list, present in practice) | Not documented | `publishedAt` |
 | Rate limits for GET | Not documented | Not documented | Not documented |
 
 ## Greenhouse
@@ -52,9 +52,19 @@ All three endpoints are public read-only GETs with no API key. Each returns ever
 
 **Points to handle**
 - `content` is HTML with **entities escaped**. The docs say editor HTML "will be automatically converted into corresponding HTML entities". It must be unescaped *before* stripping tags, or the stored text will contain literal `&lt;p&gt;`.
-- `company_name` and `first_published` are documented **only on the single-job endpoint**, not the list. Fetching each job individually would break the one-request-per-company rule, so `published_at` will be empty for Greenhouse and `first_seen_at` is the reliable date. `updated_at` changes on edits, so it is not a posting date.
+- `company_name` and `first_published` are documented **only on the single-job endpoint**, not the list. `updated_at` changes on edits, so it is not a posting date.
 - There's no remote field. Remote status has to come from `location.name` text, so `remote` will often be `unknown`.
 - `meta.total` can be compared against `len(jobs)` as a cheap shape check.
+
+**Checked against a real response (issue 1.3, 2026-10-03, GitLab's board, 211 jobs)**
+- **The list response does include `first_published` and `company_name`**, on all 211 jobs, even though the docs only show them on the single-job endpoint. The fetcher uses `first_published` for `published_at`. Because the field is undocumented here, its absence gives `None` and is not an error. A value that's present but unreadable is reported as a shape error.
+- Other undocumented fields also appear: `data_compliance`, `application_deadline`, `ai_disclaimer`, `include_ai_disclaimer`, `ai_opt_out_request_url`. The fetcher doesn't use them.
+- `id` is an integer, on all jobs.
+- `absolute_url` uses the `job-boards.greenhouse.io` domain, not `boards.greenhouse.io`. The fetcher stores whatever URL is returned.
+- `content` is entity-escaped on every job, and sometimes **double**-escaped (`&amp;nbsp;`, `&amp;amp;`). One `html.unescape` gives real HTML, and the HTML parser then decodes the entities left in the text.
+- Titles can carry trailing whitespace, so the fetcher strips them.
+- `meta.total` matched `len(jobs)`.
+- Location formats seen: `Remote`, `Remote, United States`, `Remote, US`, `Remote, Canada; Remote, United States` (several locations in one string), and `Bangalore, India`.
 
 ## Lever
 
@@ -147,9 +157,9 @@ All three endpoints are public read-only GETs with no API key. Each returns ever
 | `remote` | `unknown` unless location text says so | from `workplaceType` | from `isRemote` / `workplaceType` |
 | `url` | `absolute_url` | `hostedUrl` | `jobUrl` |
 | `description_text` | `content`, unescaped then stripped | `descriptionPlain` + `lists` + `additionalPlain` | `descriptionPlain` |
-| `published_at` | empty (only on per-job endpoint) | empty unless 1.4 finds a date | `publishedAt` |
+| `published_at` | `first_published` if present, else empty | empty unless 1.4 finds a date | `publishedAt` |
 
-`company` comes from our own config for all three platforms. Only Greenhouse's per-job endpoint returns a company name, and it's not needed.
+`company` comes from our own config for all three platforms. Greenhouse also sends `company_name`, but it isn't used, because the name in `companies.toml` is the one the owner chose.
 
 ## Usage terms and politeness
 
