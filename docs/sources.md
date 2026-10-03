@@ -11,9 +11,9 @@ All three endpoints are public read-only GETs with no API key. Each returns ever
 | | Greenhouse | Lever | Ashby |
 |---|---|---|---|
 | List endpoint | `GET https://boards-api.greenhouse.io/v1/boards/{board_token}/jobs?content=true` | `GET https://api.lever.co/v0/postings/{site}?mode=json` | `GET https://api.ashbyhq.com/posting-api/job-board/{job_board_name}` |
-| Auth for GET | None | None | Not documented (example uses none) |
+| Auth for GET | None | None | None (undocumented; confirmed by a real request) |
 | Board identifier | `board_token` | `site` | `job_board_name` |
-| Stable job ID | `id` | `id` | **Not documented** (see below) |
+| Stable job ID | `id` | `id` | `id` (undocumented, present in practice) |
 | Description | HTML, entity-escaped (`content`) | HTML and plain text | HTML and plain text |
 | Remote signal | None (location text only) | `workplaceType` (real value `onsite`, docs say `on-site`) | `isRemote`, `workplaceType` |
 | Posted date | `first_published` (undocumented in list, present in practice) | `createdAt`, ms since 1970 (undocumented, present in practice) | `publishedAt` |
@@ -130,7 +130,7 @@ Findings:
 
 **Endpoint**
 - `GET https://api.ashbyhq.com/posting-api/job-board/{job_board_name}`
-- Authentication is **not documented**. The docs example uses none. Issue 1.5 confirms this with a real request.
+- Authentication is **not documented**. The docs example uses none, and a real request confirmed none is needed (see below).
 
 **Job board name:** the last part of the hosted board URL. For example, `https://jobs.ashbyhq.com/Ashby` gives `Ashby`.
 
@@ -156,7 +156,7 @@ Findings:
 - `jobUrl`: public posting URL. `applyUrl` is the application form.
 
 **Points to handle**
-- **No job ID is documented.** The example job object has no `id` field, but the planned posting key is `{source}:{company_slug}:{source_job_id}`. Issue 1.5 must check the real response:
+- **No job ID is documented.** The example job object has no `id` field, but the planned posting key is `{source}:{company_slug}:{source_job_id}`. The real response has one (see below). The plan before checking was:
   - If an `id` field is present, use it, and note here that it's undocumented.
   - If not, derive the ID from the last path segment of `jobUrl`, and record that choice in `docs/decisions.md`.
 
@@ -165,11 +165,23 @@ Findings:
 - `employmentType: "Intern"` is a structured signal that can back up the title exclude rules.
 - Region and country come as structured fields here, which is more reliable than Greenhouse's free text for location tiers.
 
+**Checked against a real response (issue 1.5, 2026-10-03, Ashby's own board `Ashby`, 62 jobs)**
+- **Job ID: the real response does include `id`**, a UUID string, on all 62 jobs, even though the docs never show it. It's unique, and it equals the last path segment of `jobUrl` on all 62. The fetcher uses `id` and **requires** it, with no fallback. If Ashby ever drops this undocumented field, every Ashby fetch fails loudly, and the fix is a deliberate choice (most likely deriving from `jobUrl`, which gives the same values) rather than a silent switch. Nothing goes in `docs/decisions.md`, since the documented-gap fallback wasn't needed.
+- **Authentication:** none needed. A plain GET returned 200.
+- **Response headers:** `cache-control: public, max-age=60` and no rate-limit headers.
+- **`descriptionHtml` is real HTML, not entity-escaped** (unlike Greenhouse). An `&lt;` in it is a literal `<` in the writing, e.g. "engineers are in &lt;2h meetings". It must **not** be unescaped before parsing, or text like `&lt;team lead&gt;` would turn into a tag and disappear.
+- `descriptionPlain` has non-breaking spaces (33 of 62 jobs), so the fetcher converts `descriptionHtml` with the shared `html_to_text`, the same as the other sources.
+- Every field in the docs example is present. The `publishedAt` format is consistent: ISO 8601 with milliseconds and an offset, e.g. `2024-03-04T14:29:08.532+00:00`.
+- `secondaryLocations` ranges from 0 to 19 entries. The fetcher joins the primary and secondary locations with `; `, skipping duplicates.
+- **Limited variety on this board:** all 62 jobs are listed, remote, and full-time, so `isListed: false`, `OnSite`, `Hybrid`, and the other employment types are covered by tests that modify the fixture, not by real examples.
+- **`remote` mapping:** `workplaceType` decides first (`Remote` is yes, `OnSite` and `Hybrid` are no). With no usable `workplaceType`, `isRemote: true` is yes, and anything else is `unknown`. `isRemote: false` alone can't tell on-site from hybrid.
+- **Personal data:** many real descriptions are written in the first person by the hiring manager, with their name and LinkedIn profile link. The fixture leaves those jobs out.
+
 ## Mapping to the planned `Posting` model
 
 | Posting field | Greenhouse | Lever | Ashby |
 |---|---|---|---|
-| `source_job_id` | `id` | `id` | Not documented (see Ashby) |
+| `source_job_id` | `id` | `id` | `id` (undocumented, required) |
 | `company` | from `companies.toml` | from `companies.toml` | from `companies.toml` |
 | `title` | `title` | `text` | `title` |
 | `location` | `location.name` | `categories.location` (+ `allLocations`) | `location` (+ `secondaryLocations`) |
