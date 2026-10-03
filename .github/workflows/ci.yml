@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Read-only token: CI only checks code, it never writes to the repo.
+permissions:
+  contents: read
+
+# A new push to the same PR cancels the older, now-outdated run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    # Windows is the primary environment (paths, Task Scheduler), so test there.
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+
+      # --locked fails if uv.lock is out of date with pyproject.toml,
+      # so CI always tests the exact versions that were committed.
+      - name: Install
+        run: uv sync --locked
+
+      - name: pytest
+        run: uv run pytest
+
+      - name: ruff check
+        run: uv run ruff check
+
+      - name: ruff format --check
+        run: uv run ruff format --check
+
+      - name: mypy
+        run: uv run mypy
