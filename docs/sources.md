@@ -15,8 +15,8 @@ All three endpoints are public read-only GETs with no API key. Each returns ever
 | Board identifier | `board_token` | `site` | `job_board_name` |
 | Stable job ID | `id` | `id` | **Not documented** (see below) |
 | Description | HTML, entity-escaped (`content`) | HTML and plain text | HTML and plain text |
-| Remote signal | None (location text only) | `workplaceType` | `isRemote`, `workplaceType` |
-| Posted date | `first_published` (undocumented in list, present in practice) | Not documented | `publishedAt` |
+| Remote signal | None (location text only) | `workplaceType` (real value `onsite`, docs say `on-site`) | `isRemote`, `workplaceType` |
+| Posted date | `first_published` (undocumented in list, present in practice) | `createdAt`, ms since 1970 (undocumented, present in practice) | `publishedAt` |
 | Rate limits for GET | Not documented | Not documented | Not documented |
 
 ## Greenhouse
@@ -84,14 +84,14 @@ All three endpoints are public read-only GETs with no API key. Each returns ever
 - `location`, `commitment`, `team`, `department`, `level`: filters. These are case-sensitive and OR-combined. We don't use them, because filtering happens locally.
 - `group`: group by location, commitment, or team. We don't use it.
 
-**Response shape:** **Not documented.** The README only says "Jobs list as raw JSON." Issue 1.4 must confirm whether it's a bare array or a wrapper object.
+**Response shape:** **Not documented.** The README only says "Jobs list as raw JSON." The real response is a bare array (see below).
 
 **Posting fields**
 - `id`: posting ID. Use this as `source_job_id`.
 - `text`: posting title
 - `categories`: `location`, `commitment`, `team`, `department`, `allLocations`. The primary location is also in `allLocations`.
 - `country`: ISO 3166-1 alpha-2 code, or null
-- `workplaceType`: `unspecified`, `on-site`, `remote`, or `hybrid`
+- `workplaceType`: `unspecified`, `on-site`, `remote`, or `hybrid` (the real API sends `onsite`, see below)
 - `description` / `descriptionPlain`: opening plus body, as HTML or plain text
 - `descriptionBody` / `descriptionBodyPlain`, `opening` / `openingPlain`
 - `lists[]`: `{ "text": name, "content": unstyled HTML }`. These are the requirements and responsibilities sections, **which are not part of `description`**.
@@ -100,10 +100,29 @@ All three endpoints are public read-only GETs with no API key. Each returns ever
 - `salaryRange` (`currency`, `interval`, `min`, `max`) and `salaryDescription` / `salaryDescriptionPlain`, all optional
 
 **Points to handle**
-- Full description text = `descriptionPlain` + each `lists[]` entry + `additionalPlain`. Travel and duty wording often sits in `lists`, so using `descriptionPlain` alone would hide it from the filters.
-- **Pagination:** no default or maximum page size is documented. Issue 1.4 must confirm that one request without `limit` returns every posting. If a response can be silently truncated, it must be detected and reported, following the no-silent-failures rule.
-- **No posted date is documented.** `createdAt` does not appear in the README. Issue 1.4 checks the real response, and until then `published_at` is empty for Lever.
+- Full description text = `description` + each `lists[]` heading and content + `additional`, all converted from HTML. Travel and duty wording often sits in `lists`, so using `descriptionPlain` alone would hide it from the filters.
+- **Pagination:** no default or maximum page size is documented. Checked below.
+- **No posted date is documented.** `createdAt` does not appear in the README. The real response has it (see below).
 - `country` plus `allLocations` help with location tiers and with spotting remote roles tied to another country.
+
+**Checked against real responses (issue 1.4, 2026-10-03)**
+
+Two requests were made:
+- `leverdemo`, Lever's own demo board and the example in its README: 11 postings
+- `palantir`, a large public board, used only for the pagination check: 319 postings
+
+Findings:
+- **Response shape:** a bare JSON array of postings, with no wrapper object.
+- **Posted date:** `createdAt` is present on every posting. It's an **integer in milliseconds since 1970 (UTC)**, and the README doesn't document it. The fetcher uses it for `published_at`. If it's missing the value is `None`; if it's present but not an integer, that's a shape error. It's the posting's creation time, which can be years before a posting reappears on a board, so `first_seen_at` is still the date that matters for "new".
+- **`workplaceType` real values are `remote`, `onsite`, `hybrid`, `unspecified`.** The docs spell it `on-site`, but the API sends `onsite`. The fetcher accepts both. A mapping built only from the docs would have quietly made every on-site role `unknown`.
+- **Pagination:** one request with no `skip` or `limit` returned all 319 postings on the large board, all with unique IDs. 319 isn't a round page size, so there's no default cap at that scale, and the fetcher makes one request with no paging.
+  - **Limitation:** Lever gives no total count, so truncation can't be detected directly the way Greenhouse's `meta.total` allows. A cap above 319 can't be ruled out. Issue 1.8's "zero jobs where there used to be some" check is the backstop for a sudden drop.
+- **EU instance:** deferred, and no `Company` region field was added. A company hosted on the EU instance would get an error status from the global endpoint, which is reported as a `SourceError` and never as an empty list. Add a region setting when a real target needs it.
+- `descriptionPlain` keeps non-breaking spaces (5 of 11 postings), so the fetcher converts the HTML fields (`description`, `lists[].content`, `additional`) with the same `html_to_text` used for Greenhouse. Stored text is then consistent across sources.
+- Some real postings have an empty `description`, with all content in `lists`, or no content at all. Both are valid postings. The empty one is left for the filters to flag.
+- `lists[].content` is a run of `<li>` items with no surrounding `<ul>`. Each item still lands on its own line.
+- `country` is present (`US`, `GB`, `CA` seen). `salaryRange` appears on some postings only.
+- Response headers show no rate-limit headers.
 
 ## Ashby
 
@@ -156,8 +175,8 @@ All three endpoints are public read-only GETs with no API key. Each returns ever
 | `location` | `location.name` | `categories.location` (+ `allLocations`) | `location` (+ `secondaryLocations`) |
 | `remote` | `unknown` unless location text says so | from `workplaceType` | from `isRemote` / `workplaceType` |
 | `url` | `absolute_url` | `hostedUrl` | `jobUrl` |
-| `description_text` | `content`, unescaped then stripped | `descriptionPlain` + `lists` + `additionalPlain` | `descriptionPlain` |
-| `published_at` | `first_published` if present, else empty | empty unless 1.4 finds a date | `publishedAt` |
+| `description_text` | `content`, unescaped then stripped | `description` + `lists` + `additional`, from HTML | `descriptionPlain` |
+| `published_at` | `first_published` if present, else empty | `createdAt` if present, else empty | `publishedAt` |
 
 `company` comes from our own config for all three platforms. Greenhouse also sends `company_name`, but it isn't used, because the name in `companies.toml` is the one the owner chose.
 
