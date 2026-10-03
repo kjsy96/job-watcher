@@ -106,3 +106,56 @@ def test_invalid_config_names_the_problem(
 def test_travel_max_percent_must_be_0_to_100(tmp_path: Path, value: str) -> None:
     with pytest.raises(ConfigError, match="max_percent"):
         load_filter_rules(write(tmp_path, MINIMAL + f"\n[travel]\nmax_percent = {value}\n"))
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        (('label = "Anywhere"', 'label = "Anywhere"\nstate_codes = "CO"'), "two-letter codes"),
+        (('label = "Anywhere"', "label = 7"), "must be text"),
+        (('label = "Anywhere"', 'label = "Anywhere"\npathway_note = ["x"]'), "must be text"),
+    ],
+)
+def test_more_invalid_shapes(tmp_path: Path, change: tuple[str, str], message: str) -> None:
+    old, new = change
+    assert old in MINIMAL
+    with pytest.raises(ConfigError, match=message):
+        load_filter_rules(write(tmp_path, MINIMAL.replace(old, new)))
+
+
+def test_section_that_is_not_a_table_is_rejected(tmp_path: Path) -> None:
+    # In TOML a top-level key must come before any [section] header, or it
+    # becomes a key of the section above it.
+    text = 'work = "commissioning"\n' + MINIMAL.replace("[work]\nterms = []\n", "")
+    with pytest.raises(ConfigError, match=r"\[work\] must be a table"):
+        load_filter_rules(write(tmp_path, text))
+
+
+def test_tier_that_is_not_a_table_is_rejected(tmp_path: Path) -> None:
+    text = MINIMAL.replace("[location.tier1]", '[location]\ntier2 = "nearby"\n\n[location.tier1]')
+    with pytest.raises(ConfigError, match=r"tier2 must be a table"):
+        load_filter_rules(write(tmp_path, text))
+
+
+def test_location_without_any_tier_is_rejected(tmp_path: Path) -> None:
+    text = MINIMAL.split("[location.tier1]")[0] + '[location]\nambiguous_terms = ["ca"]\n'
+    with pytest.raises(ConfigError, match=r"at least one \[location\.tierN\]"):
+        load_filter_rules(write(tmp_path, text))
+
+
+def test_two_names_for_the_same_tier_number_are_rejected(tmp_path: Path) -> None:
+    # TOML allows both names, but "tier01" and "tier1" are both tier 1.
+    text = MINIMAL + '\n[location.tier01]\nlabel = "Also first"\n'
+    with pytest.raises(ConfigError, match="tier numbers must be unique"):
+        load_filter_rules(write(tmp_path, text))
+
+
+def test_tier10_sorts_after_tier2(tmp_path: Path) -> None:
+    # Numeric order, not text order ("tier10" < "tier2" as text).
+    text = MINIMAL + '\n[location.tier10]\nlabel = "Ten"\n\n[location.tier2]\nlabel = "Two"\n'
+    assert [t.number for t in load_filter_rules(write(tmp_path, text)).tiers] == [1, 2, 10]
+
+
+def test_invalid_toml_is_reported(tmp_path: Path) -> None:
+    with pytest.raises(ConfigError, match="not valid TOML"):
+        load_filter_rules(write(tmp_path, '[roles]\ntitle_include = ["engineer"'))

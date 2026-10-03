@@ -86,3 +86,21 @@ def test_empty_terms_match_nothing() -> None:
     assert not empty
     assert empty.hits("anything") == []
     assert not empty.any("anything")
+
+
+@pytest.mark.parametrize("blank", ["", "   ", "\t"])
+def test_blank_term_is_rejected(blank: str) -> None:
+    # A blank term would compile to a pattern that matches every text.
+    with pytest.raises(ValueError, match="must not be blank"):
+        Terms(["mining", blank])
+
+
+def test_vowel_y_plural_adds_s() -> None:
+    # "survey" -> "surveys", not "surveies" (only consonant + y becomes "ies").
+    terms = Terms(["site survey"])
+    assert terms.any("Site surveys at remote mines")
+    assert not terms.any("Site surveies")
+
+
+def test_repr_lists_the_terms() -> None:
+    assert repr(Terms(["mining", "cement"])) == "Terms(['mining', 'cement'])"
