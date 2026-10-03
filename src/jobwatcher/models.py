@@ -31,6 +31,17 @@ class Remote(StrEnum):
     UNKNOWN = "unknown"
 
 
+class PostingStatus(StrEnum):
+    """Whether a posting is still on its board.
+
+    Closed postings are kept, never deleted, so history survives for the
+    fit review and for spotting postings that come back.
+    """
+
+    OPEN = "open"
+    CLOSED = "closed"
+
+
 @dataclass(frozen=True, slots=True)
 class Company:
     """One target company, as listed in companies.toml."""
