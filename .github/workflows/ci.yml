@@ -29,16 +29,23 @@ jobs:
       # --locked fails if uv.lock is out of date with pyproject.toml,
       # so CI always tests the exact versions that were committed.
       - name: Install
+        id: install
         run: uv sync --locked
 
+      # Each check below runs even if an earlier check failed, so one PR run
+      # reports every problem at once. They are skipped only if install failed.
       - name: pytest
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: uv run pytest
 
       - name: ruff check
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: uv run ruff check
 
       - name: ruff format --check
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: uv run ruff format --check
 
       - name: mypy
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: uv run mypy
