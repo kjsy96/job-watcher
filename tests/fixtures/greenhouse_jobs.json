@@ -1,0 +1,223 @@
+{
+  "jobs": [
+    {
+      "absolute_url": "https://job-boards.greenhouse.io/gitlab/jobs/8638232002",
+      "data_compliance": [
+        {
+          "type": "gdpr",
+          "requires_consent": false,
+          "requires_processing_consent": false,
+          "requires_retention_consent": false,
+          "retention_period": null,
+          "demographic_data_consent_applies": false
+        }
+      ],
+      "internal_job_id": 6449994002,
+      "location": {
+        "name": "Remote, United States"
+      },
+      "metadata": [
+        {
+          "id": 4595831002,
+          "name": "Quota Coverage Type",
+          "value": "n/a",
+          "value_type": "single_select"
+        }
+      ],
+      "id": 8638232002,
+      "updated_at": "2026-09-29T10:38:50-04:00",
+      "requisition_id": "6682",
+      "title": "AI Transformation Owner, CRO",
+      "company_name": "GitLab",
+      "first_published": "2026-07-22T13:38:40-04:00",
+      "language": "en",
+      "application_deadline": null,
+      "content": "&lt;div class=&quot;content-intro&quot;&gt;&lt;p&gt;GitLab is the intelligent orchestration platform for DevSecOps. GitLab enables organizations to increase developer productivity, improve operational efficiency, reduce security and compliance risk, and accelerate digital transformation. More than 50 million registered users and more than 50% of the Fortune 100* trust GitLab to ship better, more secure software faster.&lt;/p&gt;\n&lt;p&gt;The same principles built into our products are reflected in how our team works: we embrace AI as a core productivity multiplier, with all team members expected to incorporate AI into their daily workflows to drive efficiency, innovation, and impact. GitLab is where careers accelerate, innovation flourishes, and every voice is valued. Our high-performance culture is driven by our values&amp;nbsp;and continuous knowledge exchange, enabling our team members to reach their full potential while collaborating with industry leaders to solve complex problems. &lt;a href=&quot;https://www.youtube.com/watch?v=OuZIb5zszQI&quot;&gt;Co-create the future with us&lt;/a&gt; as we build technology that transforms how the world develops software.&lt;/p&gt;\n&lt;p&gt;*&lt;em&gt;Fortune 500® is a registered trademark of Fortune Media IP Limited, used under license. Claim based on GitLab data. Fortune 100 refers to the top 20% ranked companies in the 2025 Fortune 500 list, published in June 2025. Fortune and Fortune Media IP Limited are not affiliated with, and do not endorse products or services of GitLab.&lt;/em&gt;&lt;/p&gt;&lt;/div&gt;&lt;h4&gt;&lt;strong&gt;An overview of this role&lt;/strong&gt;&lt;/h4&gt;\n&lt;p&gt;The AI Transformation Owner drives the end-to-end AI agenda for the field organization, translating emerging AI capabilities into concrete enablement roadmaps, field use cases, and org-level strategy. You will partner closely with product and engineering teams to pilot and scale AI solutions, own the operational transformation plan needed to embed AI into day-to-day field workflows, and establish the governance framework that keeps AI adoption safe, compliant, and aligned with company standards. This is a hands-on role for someone who can move from strategy to execution without heavy oversight.&lt;/p&gt;\n&lt;p&gt;This role reports to the Vice President, Enablement &amp;amp; AI.&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;What You’ll Do&lt;/strong&gt; &amp;nbsp;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;&lt;strong&gt;AI Enablement Roadmap:&lt;/strong&gt; Own and continuously evolve the roadmap for AI-driven enablement initiatives, prioritizing based on field impact, feasibility, and alignment with broader Enterprise AI team and strategy..&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;AI Field Use Cases:&lt;/strong&gt; Identify, scope, and execute on high-value AI use cases for the field (e.g., deal support, prospecting, content generation, guided selling, skills, change management), working with stakeholders to define success criteria and measure impact.&lt;/li&gt;\n&lt;li&gt;&lt;strong&gt;AI Field Champions: &lt;/strong&gt;build relationships with champions in the field organization to activate power-usage and drive peer-led adoption; track this adoption (e.g., usage, proficiency, behavior change) with our AI Ops Specialist and Enablement Analyst.&lt;/li&gt;\n&lt;/ul&gt;",
+      "departments": [
+        {
+          "id": 4114891002,
+          "name": "Enablement",
+          "child_ids": [],
+          "parent_id": 4011049002
+        }
+      ],
+      "offices": [],
+      "ai_disclaimer": null,
+      "include_ai_disclaimer": null,
+      "ai_opt_out_request_url": null
+    },
+    {
+      "absolute_url": "https://job-boards.greenhouse.io/gitlab/jobs/8857185002",
+      "data_compliance": [
+        {
+          "type": "gdpr",
+          "requires_consent": false,
+          "requires_processing_consent": false,
+          "requires_retention_consent": false,
+          "retention_period": null,
+          "demographic_data_consent_applies": false
+        }
+      ],
+      "internal_job_id": 6545717002,
+      "location": {
+        "name": "Remote, Canada; Remote, United States"
+      },
+      "metadata": [
+        {
+          "id": 4595831002,
+          "name": "Quota Coverage Type",
+          "value": "Overlay",
+          "value_type": "single_select"
+        }
+      ],
+      "id": 8857185002,
+      "updated_at": "2026-09-30T15:00:43-04:00",
+      "requisition_id": "7064",
+      "title": "Associate Renewals Manager   ",
+      "company_name": "GitLab",
+      "first_published": "2026-09-29T18:06:03-04:00",
+      "language": "en",
+      "application_deadline": null,
+      "content": "&lt;div class=&quot;content-intro&quot;&gt;&lt;p&gt;GitLab is the intelligent orchestration platform for DevSecOps. GitLab enables organizations to increase developer productivity, improve operational efficiency, reduce security and compliance risk, and accelerate digital transformation. More than 50 million registered users and more than 50% of the Fortune 100* trust GitLab to ship better, more secure software faster.&lt;/p&gt;\n&lt;p&gt;The same principles built into our products are reflected in how our team works: we embrace AI as a core productivity multiplier, with all team members expected to incorporate AI into their daily workflows to drive efficiency, innovation, and impact. GitLab is where careers accelerate, innovation flourishes, and every voice is valued. Our high-performance culture is driven by our values&amp;nbsp;and continuous knowledge exchange, enabling our team members to reach their full potential while collaborating with industry leaders to solve complex problems. &lt;a href=&quot;https://www.youtube.com/watch?v=OuZIb5zszQI&quot;&gt;Co-create the future with us&lt;/a&gt; as we build technology that transforms how the world develops software.&lt;/p&gt;\n&lt;p&gt;*&lt;em&gt;Fortune 500® is a registered trademark of Fortune Media IP Limited, used under license. Claim based on GitLab data. Fortune 100 refers to the top 20% ranked companies in the 2025 Fortune 500 list, published in June 2025. Fortune and Fortune Media IP Limited are not affiliated with, and do not endorse products or services of GitLab.&lt;/em&gt;&lt;/p&gt;&lt;/div&gt;&lt;h4&gt;&lt;strong&gt;An overview of this role&lt;/strong&gt;&lt;/h4&gt;\n&lt;p&gt;Reports to: Manager, Renewals&lt;/p&gt;\n&lt;p&gt;This is an individual-contributor, tactical role focused on timely, accurate execution rather than strategic decision-making. The Associate Renewals Manager works under the general direction of Senior Renewals Managers and their manager, following specific instructions and frameworks in day-to-day work. Solutions and outputs are reviewed by more senior team members and/or the direct manager.&lt;/p&gt;\n&lt;p&gt;&lt;strong&gt;What You’ll Do&lt;/strong&gt;&amp;nbsp;&amp;nbsp;&lt;/p&gt;\n&lt;ul&gt;\n&lt;li&gt;Manage an assigned portfolio of customer renewals tracking key dates and driving them to on-time closure.&amp;nbsp;&lt;/li&gt;\n&lt;li&gt;Have real, consultative conversations with customers throughout the renewal cycle to understand how they&#39;re actually using the product and where they&#39;re headed next.&lt;/li&gt;\n&lt;li&gt;Identify and surface expansion opportunities — additional seats, tiers, or modules — that come out of those conversations.&lt;/li&gt;\n&lt;li&gt;Probe for new use cases and unmet needs within existing accounts, connecting what customers describe to relevant GitLab capabilities they aren&#39;t yet using.&lt;/li&gt;\n&lt;li&gt;Prepare and send renewal quotes, order forms, and related documentation accurately and on schedule, structuring them to reflect any expansion identified.&lt;/li&gt;\n&lt;li&gt;Prepare and send renewal quotes, order forms, and related documentation accurately and on schedule.&lt;/li&gt;\n&lt;li&gt;Analyze moderately complex renewal situations (usage trends, contract terms, pricing) by reviewing existing account factors, escalating anything unusual to a senior team member or manager and helping to mitigate any risk identified.&lt;/li&gt;\n&lt;li&gt;Explain moderately complex renewal terms and issues to customers and internal stakeholders, working to build alignment.&lt;/li&gt;\n&lt;li&gt;Collaborate with Sales, Customer Success, and Finance to help identify expansion opportunities, resolve blockers and keep renewals moving.&lt;/li&gt;\n&lt;li&gt;Communicate proactively and transparently with customers and internal stakeholders, adapting to GitLab&#39;s communication framework.&lt;/li&gt;\n&lt;li&gt;Maintain accurate, up-to-date records in the CRM/renewals system for forecasting and reporting.&lt;/li&gt;\n&lt;li&gt;Prioritize tasks with guidance from more senior team members to drive quality, timely results.&lt;/li&gt;\n&lt;li&gt;Contribute to team goals by working collaboratively with peer RM’s.&lt;/li&gt;\n&lt;/ul&gt;",
+      "departments": [
+        {
+          "id": 4095419002,
+          "name": "Renewals",
+          "child_ids": [
+            4109794002
+          ],
+          "parent_id": 4011043002
+        }
+      ],
+      "offices": [
+        {
+          "id": 4019551002,
+          "name": "North America",
+          "location": null,
+          "child_ids": [
+            4040901002,
+            4040904002,
+            4040902002
+          ],
+          "parent_id": null
+        }
+      ],
+      "ai_disclaimer": null,
+      "include_ai_disclaimer": null,
+      "ai_opt_out_request_url": null
+    },
+    {
+      "absolute_url": "https://job-boards.greenhouse.io/gitlab/jobs/8626772002",
+      "data_compliance": [
+        {
+          "type": "gdpr",
+          "requires_consent": false,
+          "requires_processing_consent": false,
+          "requires_retention_consent": false,
+          "retention_period": null,
+          "demographic_data_consent_applies": false
+        }
+      ],
+      "internal_job_id": 6445355002,
+      "location": {
+        "name": "Bangalore, India"
+      },
+      "metadata": [
+        {
+          "id": 4595831002,
+          "name": "Quota Coverage Type",
+          "value": "n/a",
+          "value_type": "single_select"
+        }
+      ],
+      "id": 8626772002,
+      "updated_at": "2026-09-29T10:38:50-04:00",
+      "requisition_id": "6633",
+      "title": "Director, Engineering, Platform Operations & Productivity",
+      "company_name": "GitLab",
+      "first_published": "2026-07-13T12:57:20-04:00",
+      "language": "en",
+      "application_deadline": null,
+      "content": "&lt;div class=&quot;content-intro&quot;&gt;&lt;p&gt;GitLab is the intelligent orchestration platform for DevSecOps. GitLab enables organizations to increase developer productivity, improve operational efficiency, reduce security and compliance risk, and accelerate digital transformation. More than 50 million registered users and more than 50% of the Fortune 100* trust GitLab to ship better, more secure software faster.&lt;/p&gt;\n&lt;p&gt;The same principles built into our products are reflected in how our team works: we embrace AI as a core productivity multiplier, with all team members expected to incorporate AI into their daily workflows to drive efficiency, innovation, and impact. GitLab is where careers accelerate, innovation flourishes, and every voice is valued. Our high-performance culture is driven by our values&amp;nbsp;and continuous knowledge exchange, enabling our team members to reach their full potential while collaborating with industry leaders to solve complex problems. &lt;a href=&quot;https://www.youtube.com/watch?v=OuZIb5zszQI&quot;&gt;Co-create the future with us&lt;/a&gt; as we build technology that transforms how the world develops software.&lt;/p&gt;\n&lt;p&gt;*&lt;em&gt;Fortune 500® is a registered trademark of Fortune Media IP Limited, used under license. Claim based on GitLab data. Fortune 100 refers to the top 20% ranked companies in the 2025 Fortune 500 list, published in June 2025. Fortune and Fortune Media IP Limited are not affiliated with, and do not endorse products or services of GitLab.&lt;/em&gt;&lt;/p&gt;&lt;/div&gt;&lt;h2&gt;&lt;strong&gt;An overview of this role&lt;/strong&gt;&lt;/h2&gt;\n&lt;p&gt;As Director, Engineering, Platform Operations &amp;amp; Productivity, you&#39;ll own three functions that all require hands-on technical depth, not just people management.&lt;/p&gt;\n&lt;p&gt;Platform Staff is a small, senior, AI-native team that moves to wherever the organization needs the most leverage, from standing up early scaffolding for an initiative, to taking on a high-impact customer request that doesn&#39;t fit any existing team&#39;s charter, to stepping directly into a production crisis until it&#39;s resolved.&lt;/p&gt;\n&lt;p&gt;This role is for a technical engineering director who has personally built distributed systems, not only managed people who did. You&#39;ll use clear metrics, strong operating rhythms, and direct technical judgment so these teams deliver predictable outcomes without relying on one-person heroics.&lt;/p&gt;\n&lt;h2&gt;&lt;strong&gt;What you’ll do&lt;/strong&gt;&lt;/h2&gt;\n&lt;ul&gt;\n&lt;li&gt;Own outcomes for Git &amp;amp; Gitaly Operations, including hiring and developing the Manager, Git &amp;amp; Gitaly Operations, and holding the function to its reliability bar across Self-Managed, GitLab Dedicated, and SaaS.&lt;/li&gt;\n&lt;li&gt;Own outcomes for Nonlinear Productivity, also known as Friction Elimination, including hiring and developing the Manager, Nonlinear Productivity, and holding the function to measurable metric movement rather than activity.&lt;/li&gt;\n&lt;li&gt;Build and oversee Platform Staff directly as a small, senior team that uses AI-assisted tools as a standard part of its work.&lt;/li&gt;\n&lt;li&gt;Assess, case by case, what Platform Staff picks up, such as a new team that needs bootstrapping, a customer request too specific for any existing team&#39;s charter, or a crisis that needs someone in the room immediately.&lt;/li&gt;\n&lt;li&gt;Assess when Platform Staff should hand work off to a permanent team once it&#39;s stable.&lt;/li&gt;\n&lt;li&gt;Set the technical bar across all three functions by personally reviewing distributed systems designs, friction-elimination fixes, and crisis management plans with equal depth.&lt;/li&gt;\n&lt;li&gt;Build the operating rhythm and metrics that keep all three functions running predictably, so none of them relies on any one person working unsustainable hours.&lt;/li&gt;\n&lt;li&gt;Represent all three functions to peer engineering stakeholders, and step in front of customers directly when Platform Staff is engaged mid-crisis.&lt;/li&gt;\n&lt;/ul&gt;",
+      "departments": [
+        {
+          "id": 4135580002,
+          "name": "Architecture Engineering",
+          "child_ids": [],
+          "parent_id": 4011044002
+        }
+      ],
+      "offices": [
+        {
+          "id": 4112140002,
+          "name": "India",
+          "location": null,
+          "child_ids": [],
+          "parent_id": 4019590002
+        }
+      ],
+      "ai_disclaimer": null,
+      "include_ai_disclaimer": null,
+      "ai_opt_out_request_url": null
+    },
+    {
+      "absolute_url": "https://job-boards.greenhouse.io/gitlab/jobs/8790102002",
+      "data_compliance": [
+        {
+          "type": "gdpr",
+          "requires_consent": false,
+          "requires_processing_consent": false,
+          "requires_retention_consent": false,
+          "retention_period": null,
+          "demographic_data_consent_applies": false
+        }
+      ],
+      "internal_job_id": 6516649002,
+      "location": {
+        "name": "Remote"
+      },
+      "metadata": [
+        {
+          "id": 4595831002,
+          "name": "Quota Coverage Type",
+          "value": "Account Executive",
+          "value_type": "single_select"
+        }
+      ],
+      "id": 8790102002,
+      "updated_at": "2026-09-29T10:38:50-04:00",
+      "requisition_id": "6966",
+      "title": "Commercial Account Executive - Mid-Market, East",
+      "company_name": "GitLab",
+      "first_published": "2026-09-10T13:32:44-04:00",
+      "language": "en",
+      "application_deadline": null,
+      "content": "&lt;div class=&quot;content-intro&quot;&gt;&lt;p&gt;GitLab is the intelligent orchestration platform for DevSecOps. GitLab enables organizations to increase developer productivity, improve operational efficiency, reduce security and compliance risk, and accelerate digital transformation. More than 50 million registered users and more than 50% of the Fortune 100* trust GitLab to ship better, more secure software faster.&lt;/p&gt;\n&lt;p&gt;The same principles built into our products are reflected in how our team works: we embrace AI as a core productivity multiplier, with all team members expected to incorporate AI into their daily workflows to drive efficiency, innovation, and impact. GitLab is where careers accelerate, innovation flourishes, and every voice is valued. Our high-performance culture is driven by our values&amp;nbsp;and continuous knowledge exchange, enabling our team members to reach their full potential while collaborating with industry leaders to solve complex problems. &lt;a href=&quot;https://www.youtube.com/watch?v=OuZIb5zszQI&quot;&gt;Co-create the future with us&lt;/a&gt; as we build technology that transforms how the world develops software.&lt;/p&gt;\n&lt;p&gt;*&lt;em&gt;Fortune 500® is a registered trademark of Fortune Media IP Limited, used under license. Claim based on GitLab data. Fortune 100 refers to the top 20% ranked companies in the 2025 Fortune 500 list, published in June 2025. Fortune and Fortune Media IP Limited are not affiliated with, and do not endorse products or services of GitLab.&lt;/em&gt;&lt;/p&gt;&lt;/div&gt;&lt;div&gt;\n&lt;h2&gt;&lt;strong&gt;An overview of this role&lt;/strong&gt;&lt;/h2&gt;\n&lt;p&gt;As a Commercial Account Executive, Mid-Market, you’ll be the primary point of contact for prospective and existing customers in our mid-market segment, helping organizations modernize how they plan, build, secure, and ship software with GitLab’s AI-powered DevSecOps platform. You’ll own a broad book of business in your territory and serve as a strategic, trusted advisor to your accounts as you prospect, run complex sales cycles, and guide customers on their journey with GitLab to achieve clear business outcomes while supporting adoption and reducing churn. You’ll collaborate closely with Sales Development, Solutions Consultant, Renewals, Partners, and Sales leadership, using value-based selling and structured sales methodologies (such as MEDDPICC and Command of the Message) to build a healthy pipeline, run accurate forecasts, and support revenue goals across a wide range of deal sizes.&lt;/p&gt;\n&lt;p&gt;Must be located in East or Central timezones in the US.&amp;nbsp;&lt;/p&gt;\n&lt;h2&gt;&lt;strong&gt;What you’ll do&lt;/strong&gt;&lt;/h2&gt;\n&lt;ul&gt;\n&lt;li&gt;Own and manage a broad Mid-Market book of business as the primary point of contact in your territory, focusing on new and expansion opportunities.&lt;/li&gt;\n&lt;li&gt;Focus on customer accounts with 250 to 1,999 employees, managing the spectrum of project sizes and complexity within the mid-market segment.&lt;/li&gt;\n&lt;li&gt;Articulate the value of GitLab’s AI-powered DevSecOps platform to Mid-Market prospects and customers, tailoring messaging to their business and technical needs.&lt;/li&gt;\n&lt;li&gt;Build and maintain a healthy pipeline through consistent prospecting, qualification, and advancement of opportunities, using structured methodologies (such as MEDDPICC and Command of the Message) to support your pipeline and revenue goals.&lt;/li&gt;\n&lt;li&gt;Document buying criteria, decision processes, next steps, and key stakeholders to run disciplined, well-orchestrated sales cycles.&lt;/li&gt;\n&lt;li&gt;Collaborate with sales development, customer success, renewals, marketing, technical teams, and partners to deliver a cohesive pre- and post-sales experience, co-sell and close opportunities, and expand GitLab’s footprint while delivering added value for customers.&lt;/li&gt;\n&lt;li&gt;Support customer adoption of GitLab solutions, proactively work to reduce churn and contraction, and participate in quarterly forecasting and territory planning.&lt;/li&gt;\n&lt;li&gt;Contribute to continuous improvement by sharing win/loss insights, updating the sales handbook, and being a clear voice of the customer into the product via our public issue tracker.&lt;/li&gt;\n&lt;/ul&gt;",
+      "departments": [
+        {
+          "id": 4096745002,
+          "name": "AMER - Commercial",
+          "child_ids": [],
+          "parent_id": 4096733002
+        }
+      ],
+      "offices": [
+        {
+          "id": 4040904002,
+          "name": "United States of America",
+          "location": null,
+          "child_ids": [
+            4040902002
+          ],
+          "parent_id": 4019551002
+        }
+      ],
+      "ai_disclaimer": null,
+      "include_ai_disclaimer": null,
+      "ai_opt_out_request_url": null
+    }
+  ],
+  "meta": {
+    "total": 4
+  }
+}
