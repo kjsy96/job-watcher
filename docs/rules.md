@@ -9,7 +9,7 @@ Every rule is tested for **match**, **no match**, and **can't tell** in `tests/t
 | Outcome | Meaning |
 |---|---|
 | **Match** | The title fits, the description overlaps with the target industries or work, and the location is in a tier. Ranked by overlap score. |
-| **Flagged** | Would be a Match, but something needs a human look. The reason to look is listed first. |
+| **Flagged** | Would be a Match, but something needs a human look: unclear location, travel, or sponsorship, or a flag term. The reason to look is listed first. |
 | **Possible** | The title fits, but no domain or work term was found. Shown as a short list, since generic postings can still be worth a glance. |
 | **Excluded** | Fails a rule. Every reason is recorded, not just the first, so excluded postings can be reviewed. |
 
@@ -68,6 +68,43 @@ If nothing places a part:
 - A place that keeps getting flagged as "no tier recognizes ..." belongs either in a tier or in `non_us_remote_terms`.
 - A place that's wrongly excluded may need its state or province code added to a tier, or adding as a place name to a tier with no codes.
 
-## Not yet
+## Travel
 
-Travel and sponsorship rules arrive in issue 2.3 and will add rows to this page and to the matrix.
+**Config:** `[travel] max_percent`. If `max_percent` is left out, the travel rule is off.
+
+**How it reads travel:** every percentage near a travel word ("travel", "traveling", and so on) in the same sentence becomes a range.
+
+| Wording | Range |
+|---|---|
+| "25%", "~25% travel", "approximately 25%" | 25 to 25 |
+| "15-30%", "15 to 30 percent", "15%-30%" | 15 to 30 |
+| "up to 25%", "less than 25%", "under 25%", "will not exceed 25%" | 0 to 25 |
+| "50%+", "at least 50%", "more than 50%" | 50 to 100 |
+
+**How it decides**, using all of the posting's ranges together:
+
+| Result | When | Outcome |
+|---|---|---|
+| **Match** | Every range tops out at or below `max_percent`. "No travel" or "travel is not required" counts as 0%. | Passes; the reason shows the quote |
+| **No match** | Every range starts above `max_percent` (e.g. "~75%" against 40) | **Excluded** |
+| **Can't tell** | Ranges straddle the limit ("up to 50%" against 40 could be 10% or 50%) or conflict | **Flagged** |
+| **Can't tell** | Travel is described without a percentage ("twice per year", "occasional travel", "90+ days per year") | **Flagged**, with the sentence quoted. Days or weeks per year aren't converted, because calendar vs. working days would be a guess. |
+| **Can't tell** | Travel isn't mentioned at all | **Flagged**: "travel not stated" |
+
+## Sponsorship
+
+**Config:** `[sponsorship]` terms. **Applies only** when the posting's best location tier has `requires_sponsorship = true`, so postings in other tiers ignore sponsorship wording.
+
+| Result | When | Outcome |
+|---|---|---|
+| **Match** | An offer term (`positive_terms`) appears | Passes |
+| **No match** | A refusal term (`hard_no_terms`) appears | **Excluded** |
+| **No match** | Only eligibility wording (`eligibility_terms`), and the title isn't a pathway title | **Excluded** |
+| **Can't tell** | Only eligibility wording, and the title matches the tier's `pathway_title_terms` | **Flagged**: the pathway permit may satisfy the requirement |
+| **Can't tell** | A refusal and an offer in different sentences | **Flagged**: "conflicting statements" |
+| **Can't tell** | None of the terms appear | **Flagged**: "sponsorship not stated" |
+
+**Watch out for:**
+- **Negated offers.** An offer term inside a sentence that also has a refusal term doesn't count. "Visa sponsorship is not available" contains the offer phrase "visa sponsorship", but it's a refusal.
+- **Pathway titles.** When the title matches the tier's `pathway_title_terms`, the tier's `pathway_note` is added as a "note:" line, on a Match or a Flagged posting. The report sorts these postings to the top of Flagged.
+- **Unmatched wording.** Eligibility wording only matches the exact phrases you configure. A posting that says "must be legally authorized to work in" followed by a list of countries won't match unless that phrase is in `eligibility_terms`. Until then, it's flagged as "not stated", which is safe.

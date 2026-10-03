@@ -8,7 +8,8 @@ from jobwatcher.models import Posting, Remote, SourceName
 
 RULES: FilterRules = load_filter_rules(Path(__file__).parent / "fixtures" / "filters_test.toml")
 
-GOOD_DESCRIPTION = "Lead commissioning and data validation at mining sites."
+# Travel is stated (and within the 40% limit) so the baseline is a clean Match.
+GOOD_DESCRIPTION = "Lead commissioning and data validation at mining sites. Travel up to 10%."
 
 
 def posting(
@@ -45,6 +46,7 @@ def test_match_with_score_tier_and_reasons() -> None:
     assert result.reasons == [
         "title: implementation",
         "location: tier 1 (Remote US / Mountain): 'Remote - US' matched us",
+        "travel 'up to 10%' is within 40%",
         "domain: mining",
         "work: commissioning, data validation",
     ]
@@ -170,3 +172,16 @@ def test_exclusion_keeps_matched_terms_for_review() -> None:
 def test_evaluate_is_deterministic() -> None:
     p = posting(location="Houston, TX; Remote - US")
     assert evaluate(p, RULES) == evaluate(p, RULES)
+
+
+def test_travel_rule_is_off_without_max_percent(tmp_path: Path) -> None:
+    text = (Path(__file__).parent / "fixtures" / "filters_test.toml").read_text(encoding="utf-8")
+    no_travel = tmp_path / "filters.toml"
+    no_travel.write_text(text.replace("[travel]\nmax_percent = 40\n", ""), encoding="utf-8")
+    rules = load_filter_rules(no_travel)
+    assert rules.travel_max_percent is None
+
+    # No travel statement at all, yet a clean Match: the rule is switched off.
+    result = evaluate(posting(description="Commissioning at mining sites."), rules)
+    assert result.outcome is Outcome.MATCH
+    assert not any("travel" in r for r in result.reasons)
