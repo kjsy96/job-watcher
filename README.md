@@ -25,7 +25,7 @@ A personal tool that checks a list of target companies' public job boards once a
 
 ## Status
 
-Phase 0 (repo setup) is in progress. The package installs and CI runs, but **`fetch` and `run` are not built yet**. See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the full phase plan.
+Phase 1 (fetch and store) is in progress. **`fetch` works**: it reads every company's board and records new, seen, and closed postings. **Filtering, reports, and `run` are not built yet** (Phase 2). See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the full phase plan.
 
 | Phase | What | Release |
 |---|---|---|
@@ -60,6 +60,24 @@ Requires Windows (the primary environment), [uv](https://docs.astral.sh/uv/), an
    - `config/filters.toml`: role titles, industries, kinds of work, location tiers, sponsorship terms, flag terms, and the travel limit. Comments in the example explain each section.
 
    Your real `companies.toml` and `filters.toml` are gitignored, so they can't be committed by accident. Only the `.example.toml` files are tracked.
+
+## Usage
+
+Fetch every company's board once and record the results:
+
+```powershell
+uv run python -m jobwatcher fetch
+```
+
+It prints one row per company (fetched, new, reopened, and closed counts, or the error) and a totals line. The defaults are `config/companies.toml` and `data/jobwatcher.db`, relative to the current folder. Use `--config` and `--db` to point elsewhere.
+
+| Exit code | Meaning |
+|---|---|
+| 0 | Every company was fetched and recorded |
+| 1 | The run finished, but at least one company failed (see its row) |
+| 2 | Nothing ran: bad arguments, an invalid config, or an unusable database |
+
+A company that fails is not recorded for that run, so a temporary error never marks its postings as closed.
 
 ## Development
 
