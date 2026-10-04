@@ -25,7 +25,7 @@ A personal tool that checks a list of target companies' public job boards once a
 
 ## Status
 
-Phase 1 (fetch and store) is complete as of v0.2.0. **`fetch` works**: it reads every company's board and records new, seen, and closed postings, with every failure reported. Next is the aggregator API test checkpoint, then Phase 2. **Filtering, reports, and `run` are not built yet** (Phase 2). See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the full phase plan.
+Phase 1 (fetch and store) is complete as of v0.2.0. Phase 2 is in progress: **`run` works**. It fetches every board, filters the new postings, and writes a daily Markdown report. Still to come in Phase 2 are the once-per-day logic, the Windows Task Scheduler setup, and a week of rule tuning. See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the full phase plan.
 
 | Phase | What | Release |
 |---|---|---|
@@ -63,7 +63,31 @@ Requires Windows (the primary environment), [uv](https://docs.astral.sh/uv/), an
 
 ## Usage
 
-Fetch every company's board once and record the results:
+### Daily run
+
+Fetch every board, filter the new postings, and write the day's report:
+
+```powershell
+uv run python -m jobwatcher run
+```
+
+The report goes to `reports/YYYY-MM-DD.md`, named for the local date. A second run on the same day writes `YYYY-MM-DD-2.md` and never replaces an earlier report. Sections, in order:
+
+1. **Run summary**
+2. **Source problems.** These are always listed before any results.
+3. **Matches**, grouped by location tier and ranked by overlap score
+4. **Flagged**, with the reason to look shown first
+5. **Possible**
+6. **Excluded**: a count, with the reasons available
+7. **Companies**: a table of every company checked
+
+Each new posting's outcome and reasons are also stored in the database. [docs/rules.md](docs/rules.md) explains how each outcome is decided.
+
+The defaults are `config/companies.toml`, `config/filters.toml`, `data/jobwatcher.db`, and `reports/`, all relative to the current folder. Use `--config`, `--filters`, `--db`, and `--reports` to change them.
+
+### Fetch only
+
+Fetch every company's board once and record the results, without filtering or a report:
 
 ```powershell
 uv run python -m jobwatcher fetch
