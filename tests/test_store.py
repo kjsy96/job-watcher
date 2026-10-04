@@ -352,3 +352,81 @@ def test_filter_results_for_unknown_posting_write_nothing(store: Store) -> None:
     assert store.filter_result("greenhouse:acme:1") == (None, [])  # rolled back
     with pytest.raises(ValueError, match="no stored posting"):
         store.filter_result("greenhouse:acme:404")
+
+
+# --- schema version 2: runs table and migration (issue 2.6) ---
+
+
+def _version_1_database(path: Path) -> None:
+    """A database exactly as version 1 of the tool created it, with one posting."""
+    from jobwatcher.store import _SCHEMA
+
+    conn = sqlite3.connect(path)
+    for statement in _SCHEMA.split(";"):
+        if statement.strip():
+            conn.execute(statement)
+    conn.execute(
+        "INSERT INTO postings (id, source, board, source_job_id, company, title, location, "
+        "remote, url, description_text, first_seen_at, last_seen_at, status) VALUES "
+        "('greenhouse:acme:1', 'greenhouse', 'acme', '1', 'Acme', 'Old Posting', 'Denver', "
+        "'unknown', 'https://example.test/1', 'text', '2026-10-01T07:00:00.000000+00:00', "
+        "'2026-10-01T07:00:00.000000+00:00', 'open')"
+    )
+    conn.execute("PRAGMA user_version = 1")
+    conn.commit()
+    conn.close()
+
+
+def test_version_1_database_is_migrated_with_postings_intact(tmp_path: Path) -> None:
+    db = tmp_path / "jobwatcher.db"
+    _version_1_database(db)
+
+    with Store.open(db) as store:
+        assert store._conn.execute("PRAGMA user_version").fetchone()[0] == SCHEMA_VERSION == 2
+        stored = store.get("greenhouse:acme:1")
+        assert stored is not None and stored.posting.title == "Old Posting"
+        store.record_run(DAY1, "ok", "reports/2026-10-01.md")
+        assert store.run_on(DAY1.date()) == ("ok", "reports/2026-10-01.md")
+
+
+def test_fresh_and_migrated_databases_have_the_same_schema(tmp_path: Path) -> None:
+    def schema(path: Path) -> list[str]:
+        conn = sqlite3.connect(path)
+        rows = conn.execute(
+            "SELECT sql FROM sqlite_schema WHERE sql IS NOT NULL ORDER BY name"
+        ).fetchall()
+        conn.close()
+        return [" ".join(str(r[0]).split()) for r in rows]
+
+    migrated = tmp_path / "migrated.db"
+    _version_1_database(migrated)
+    Store.open(migrated).close()
+    fresh = tmp_path / "fresh.db"
+    Store.open(fresh).close()
+
+    assert schema(migrated) == schema(fresh)
+
+
+def test_run_on_returns_the_latest_run_that_day(store: Store) -> None:
+    from datetime import date
+
+    assert store.run_on(date(2026, 10, 1)) is None
+    store.record_run(DAY1, "partial", "reports/2026-10-01.md")
+    store.record_run(DAY1 + timedelta(hours=2), "ok", "reports/2026-10-01-2.md")
+    assert store.run_on(date(2026, 10, 1)) == ("ok", "reports/2026-10-01-2.md")
+    assert store.run_on(date(2026, 10, 2)) is None
+
+
+def test_run_date_is_the_local_date_given(store: Store) -> None:
+    from datetime import date, timezone
+
+    # 23:30 on Oct 1 in UTC-6 is already Oct 2 in UTC; the local date counts.
+    late_evening = datetime(2026, 10, 1, 23, 30, tzinfo=timezone(timedelta(hours=-6)))
+    store.record_run(late_evening, "ok", "reports/2026-10-01.md")
+    assert store.run_on(date(2026, 10, 1)) is not None
+    assert store.run_on(date(2026, 10, 2)) is None
+
+
+def test_run_outcome_must_be_known(store: Store) -> None:
+    with pytest.raises(sqlite3.IntegrityError):
+        store.record_run(DAY1, "skipped", "x.md")
