@@ -2,6 +2,25 @@
 
 Owner decisions that change the plan, the rules, or how the tool behaves, newest first. Each entry says what was decided, why, and what it affects. Filter rule changes during Phase 2 tuning are logged here too (issue 2.8). Because this file is public, rule changes are described in general terms; the specific terms and places live only in the gitignored `config/filters.toml` (design principle 5).
 
+## 2026-10-04: Discovery feed added (Phase 2b), using Adzuna for discovery only
+
+**Decision:** Add a weekly discovery feed after issue 2.7, before the tuning week. The plan is now v13. It searches the Adzuna API with the owner's role and industry terms, groups results by employer, detects each new employer's job board, and lists candidates in a discovery report for the owner to approve or reject. Phase 5 (Claude-assisted discovery) reuses its board detection and approval step.
+
+**Why:**
+- **Where the owner's time goes.** Finding companies and roles they haven't heard of is where most of the owner's search time goes. The daily run only watches companies already on the list.
+- **Snippets are fine for discovery.** The aggregator test ruled Adzuna out for *judging* postings, because its descriptions are shortened. Discovery only needs to learn that an unfamiliar company is hiring for a matching role. Approved companies are then read in full from their own Greenhouse, Lever, or Ashby board and filtered normally. Adzuna data is never used for filtering decisions.
+
+**Adzuna terms review (owner, 2026-10-04):**
+- **Permitted use.** The terms permit "personal research", and a personal job search fits.
+- **The aggregation restriction doesn't apply.** The clause against using data "in aggregation … to deliver any ongoing work or research … without written consent" belongs to a paragraph about commercial, government, or academic organisations on a 14-day trial, which doesn't describe this use.
+- **Attribution.** Published Adzuna data must credit "The Adzuna API", so discovery reports will carry the credit even though they're private.
+- **Limits.** Default limits are 250 calls per day and 2,500 per month, far above a weekly run.
+- **Caveat.** "Personal research" isn't defined in the terms. Revisit if the tool is ever used for anything other than the owner's own search.
+
+**Design constraint from the terms:** the tool never follows Adzuna's job links to find an employer's board. They're Adzuna's paid click-throughs, and automated clicks would misuse them.
+
+**Affects:** `PROJECT_PLAN.md` (Phase 2b added, Phase 5 trimmed) and `CLAUDE.md` (Adzuna approved for discovery only).
+
 ## 2026-10-04: Filter rules tuned after the first real run
 
 **Decision:** After reviewing how the rule engine sorted the first 136 real postings, the owner:
