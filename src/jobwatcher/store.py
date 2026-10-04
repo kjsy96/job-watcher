@@ -7,6 +7,7 @@ CLI), and is why record_board takes a list of postings rather than doing
 any fetching itself.
 """
 
+import json
 import sqlite3
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -254,27 +255,43 @@ class Store:
 
     def get(self, posting_id: str) -> StoredPosting | None:
         row = self._conn.execute("SELECT * FROM postings WHERE id = ?", (posting_id,)).fetchone()
+        return None if row is None else _stored(row)
+
+    def first_seen_in(self, seen_at: datetime) -> list[StoredPosting]:
+        """Postings first seen in the run that used this timestamp: that run's new postings.
+
+        Exact equality works because a run stamps every posting it records
+        with the same seen_at, written in one fixed text format.
+        """
+        rows = self._conn.execute(
+            "SELECT * FROM postings WHERE first_seen_at = ? ORDER BY id", (_to_text(seen_at),)
+        )
+        return [_stored(row) for row in rows]
+
+    def set_filter_results(self, results: list[tuple[str, str, list[str]]]) -> None:
+        """Record (posting id, outcome, reasons) for each posting, in one transaction.
+
+        Reasons are stored as a JSON list so excluded postings stay reviewable
+        later (and readable by the Phase 3 MCP server).
+        """
+        with self._conn:
+            for posting_id, outcome, reasons in results:
+                updated = self._conn.execute(
+                    "UPDATE postings SET filter_result = ?, filter_reasons = ? WHERE id = ?",
+                    (outcome, json.dumps(reasons), posting_id),
+                ).rowcount
+                if updated != 1:
+                    raise ValueError(f"no stored posting with id {posting_id!r}")
+
+    def filter_result(self, posting_id: str) -> tuple[str | None, list[str]]:
+        """(outcome, reasons) as stored; (None, []) if not filtered yet."""
+        row = self._conn.execute(
+            "SELECT filter_result, filter_reasons FROM postings WHERE id = ?", (posting_id,)
+        ).fetchone()
         if row is None:
-            return None
-        published = row["published_at"]
-        posting = Posting(
-            source=SourceName(row["source"]),
-            board=str(row["board"]),
-            source_job_id=str(row["source_job_id"]),
-            company=str(row["company"]),
-            title=str(row["title"]),
-            location=str(row["location"]),
-            remote=Remote(row["remote"]),
-            url=str(row["url"]),
-            description_text=str(row["description_text"]),
-            published_at=_from_text(published) if published is not None else None,
-        )
-        return StoredPosting(
-            posting=posting,
-            first_seen_at=_from_text(str(row["first_seen_at"])),
-            last_seen_at=_from_text(str(row["last_seen_at"])),
-            status=PostingStatus(row["status"]),
-        )
+            raise ValueError(f"no stored posting with id {posting_id!r}")
+        reasons = json.loads(row["filter_reasons"]) if row["filter_reasons"] else []
+        return (row["filter_result"], [str(r) for r in reasons])
 
     def count(self, company: Company, status: PostingStatus) -> int:
         row = self._conn.execute(
@@ -282,3 +299,25 @@ class Store:
             (company.source, company.board, status),
         ).fetchone()
         return int(row[0])
+
+
+def _stored(row: sqlite3.Row) -> StoredPosting:
+    published = row["published_at"]
+    posting = Posting(
+        source=SourceName(row["source"]),
+        board=str(row["board"]),
+        source_job_id=str(row["source_job_id"]),
+        company=str(row["company"]),
+        title=str(row["title"]),
+        location=str(row["location"]),
+        remote=Remote(row["remote"]),
+        url=str(row["url"]),
+        description_text=str(row["description_text"]),
+        published_at=_from_text(published) if published is not None else None,
+    )
+    return StoredPosting(
+        posting=posting,
+        first_seen_at=_from_text(str(row["first_seen_at"])),
+        last_seen_at=_from_text(str(row["last_seen_at"])),
+        status=PostingStatus(row["status"]),
+    )

@@ -1,8 +1,13 @@
 """Command-line entry point: ``python -m jobwatcher``.
 
-Exit codes:
+Commands:
+  fetch  fetch every company's board once and record new and closed postings
+  run    fetch, filter the new postings, and write the day's report
+
+Exit codes (both commands):
   0  every company was fetched and recorded
-  1  the run finished, but at least one company failed (see the summary)
+  1  the run finished, but at least one company failed (see the summary;
+     for run, the report is still written and lists the failure first)
   2  nothing ran: bad arguments, config, or database
 """
 
@@ -14,8 +19,10 @@ from pathlib import Path
 from typing import TextIO
 
 from jobwatcher import __version__, fetch
+from jobwatcher import run as daily
 from jobwatcher.config import ConfigError, load_companies
 from jobwatcher.fetch import CompanyResult, Outcome
+from jobwatcher.filter_config import load_filter_rules
 from jobwatcher.store import Store, StoreError
 
 EXIT_OK = 0
@@ -34,17 +41,33 @@ def build_parser() -> argparse.ArgumentParser:
     fetch_cmd = commands.add_parser(
         "fetch", help="fetch every company's board once and record new and closed postings"
     )
-    fetch_cmd.add_argument(
-        "--config",
-        type=Path,
-        default=Path("config/companies.toml"),
-        help="company list (default: config/companies.toml)",
+    run_cmd = commands.add_parser(
+        "run", help="fetch, filter the new postings, and write the day's report"
     )
-    fetch_cmd.add_argument(
-        "--db",
+    for cmd in (fetch_cmd, run_cmd):
+        cmd.add_argument(
+            "--config",
+            type=Path,
+            default=Path("config/companies.toml"),
+            help="company list (default: config/companies.toml)",
+        )
+        cmd.add_argument(
+            "--db",
+            type=Path,
+            default=Path("data/jobwatcher.db"),
+            help="SQLite database, created if missing (default: data/jobwatcher.db)",
+        )
+    run_cmd.add_argument(
+        "--filters",
         type=Path,
-        default=Path("data/jobwatcher.db"),
-        help="SQLite database, created if missing (default: data/jobwatcher.db)",
+        default=Path("config/filters.toml"),
+        help="filter rules (default: config/filters.toml)",
+    )
+    run_cmd.add_argument(
+        "--reports",
+        type=Path,
+        default=Path("reports"),
+        help="folder for daily reports (default: reports)",
     )
     return parser
 
@@ -54,6 +77,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.command == "fetch":
         return run_fetch(args.config, args.db, sys.stdout, sys.stderr)
+    if args.command == "run":
+        return run_daily(args.config, args.filters, args.db, args.reports, sys.stdout, sys.stderr)
     parser.print_help()
     return EXIT_OK
 
@@ -79,6 +104,48 @@ def run_fetch(config_path: Path, db_path: Path, out: TextIO, err: TextIO | None 
     # Anything short of every company OK exits non-zero, so a scheduled run
     # can never look healthy while a source is broken or suspicious.
     return EXIT_OK if all(r.outcome is Outcome.OK for r in results) else EXIT_COMPANY_FAILED
+
+
+def run_daily(
+    config_path: Path,
+    filters_path: Path,
+    db_path: Path,
+    reports_dir: Path,
+    out: TextIO,
+    err: TextIO | None = None,
+) -> int:
+    # Both configs are checked before any request, so a typo in either file
+    # can't cost a run's worth of fetching.
+    try:
+        companies = load_companies(config_path)
+        rules = load_filter_rules(filters_path)
+    except ConfigError as exc:
+        print(f"Config error: {exc}", file=out)
+        return EXIT_UNUSABLE
+
+    # Local, timezone-aware time: the report's date and file name follow the
+    # owner's calendar day. The store converts it to UTC for storage.
+    seen_at = datetime.now(UTC).astimezone()
+    try:
+        with Store.open(db_path) as store, fetch.make_client() as client:
+            result = daily.run(companies, rules, store, client, seen_at, reports_dir, errors=err)
+    except StoreError as exc:
+        print(f"Database error: {exc}", file=out)
+        return EXIT_UNUSABLE
+
+    print_summary(result.companies, seen_at.astimezone(UTC), out)
+    counts = {o: 0 for o in ("match", "flagged", "possible", "excluded")}
+    for item in result.items:
+        counts[item.result.outcome.value] += 1
+    print(
+        f"New postings: {counts['match']} match, {counts['flagged']} flagged, "
+        f"{counts['possible']} possible, {counts['excluded']} excluded.",
+        file=out,
+    )
+    print(f"Report: {result.report_path}", file=out)
+    return (
+        EXIT_OK if all(r.outcome is Outcome.OK for r in result.companies) else EXIT_COMPANY_FAILED
+    )
 
 
 _STATUS_LABEL = {Outcome.OK: "ok", Outcome.WARNING: "WARNING", Outcome.FAILED: "ERROR"}
