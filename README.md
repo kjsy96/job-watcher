@@ -85,6 +85,16 @@ Each new posting's outcome and reasons are also stored in the database. [docs/ru
 
 The defaults are `config/companies.toml`, `config/filters.toml`, `data/jobwatcher.db`, and `reports/`, all relative to the current folder. Use `--config`, `--filters`, `--db`, and `--reports` to change them.
 
+### Re-check stored postings after editing the rules
+
+Re-run the current filter rules over every open posting already stored, without fetching anything:
+
+```powershell
+uv run python -m jobwatcher refilter
+```
+
+It writes `reports/refilter-YYYY-MM-DD.md` with the same layout as the daily report, plus a **Changes** section listing every posting whose outcome differs from its last stored result (for example `flagged -> match`). Run it after each edit to `config/filters.toml` to see exactly what the edit changed across all current postings.
+
 ### Fetch only
 
 Fetch every company's board once and record the results, without filtering or a report:

@@ -268,6 +268,11 @@ class Store:
         )
         return [_stored(row) for row in rows]
 
+    def open_postings(self) -> list[StoredPosting]:
+        """Every posting currently open on its board, in id order."""
+        rows = self._conn.execute("SELECT * FROM postings WHERE status = 'open' ORDER BY id")
+        return [_stored(row) for row in rows]
+
     def set_filter_results(self, results: list[tuple[str, str, list[str]]]) -> None:
         """Record (posting id, outcome, reasons) for each posting, in one transaction.
 

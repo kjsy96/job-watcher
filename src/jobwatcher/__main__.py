@@ -1,11 +1,12 @@
 """Command-line entry point: ``python -m jobwatcher``.
 
 Commands:
-  fetch  fetch every company's board once and record new and closed postings
-  run    fetch, filter the new postings, and write the day's report
+  fetch     fetch every company's board once and record new and closed postings
+  run       fetch, filter the new postings, and write the day's report
+  refilter  re-run the current rules over every open stored posting (no network)
 
-Exit codes (both commands):
-  0  every company was fetched and recorded
+Exit codes:
+  0  every company was fetched and recorded (refilter: it finished)
   1  the run finished, but at least one company failed (see the summary;
      for run, the report is still written and lists the failure first)
   2  nothing ran: bad arguments, config, or database
@@ -44,7 +45,12 @@ def build_parser() -> argparse.ArgumentParser:
     run_cmd = commands.add_parser(
         "run", help="fetch, filter the new postings, and write the day's report"
     )
-    for cmd in (fetch_cmd, run_cmd):
+    refilter_cmd = commands.add_parser(
+        "refilter",
+        help="re-run the current rules over every open stored posting and write a review "
+        "report (no network)",
+    )
+    for cmd in (fetch_cmd, run_cmd, refilter_cmd):
         cmd.add_argument(
             "--config",
             type=Path,
@@ -57,18 +63,19 @@ def build_parser() -> argparse.ArgumentParser:
             default=Path("data/jobwatcher.db"),
             help="SQLite database, created if missing (default: data/jobwatcher.db)",
         )
-    run_cmd.add_argument(
-        "--filters",
-        type=Path,
-        default=Path("config/filters.toml"),
-        help="filter rules (default: config/filters.toml)",
-    )
-    run_cmd.add_argument(
-        "--reports",
-        type=Path,
-        default=Path("reports"),
-        help="folder for daily reports (default: reports)",
-    )
+    for cmd in (run_cmd, refilter_cmd):
+        cmd.add_argument(
+            "--filters",
+            type=Path,
+            default=Path("config/filters.toml"),
+            help="filter rules (default: config/filters.toml)",
+        )
+        cmd.add_argument(
+            "--reports",
+            type=Path,
+            default=Path("reports"),
+            help="folder for reports (default: reports)",
+        )
     return parser
 
 
@@ -79,7 +86,45 @@ def main(argv: Sequence[str] | None = None) -> int:
         return run_fetch(args.config, args.db, sys.stdout, sys.stderr)
     if args.command == "run":
         return run_daily(args.config, args.filters, args.db, args.reports, sys.stdout, sys.stderr)
+    if args.command == "refilter":
+        return run_refilter(args.config, args.filters, args.db, args.reports, sys.stdout)
     parser.print_help()
+    return EXIT_OK
+
+
+def run_refilter(
+    config_path: Path, filters_path: Path, db_path: Path, reports_dir: Path, out: TextIO
+) -> int:
+    try:
+        companies = load_companies(config_path)
+        rules = load_filter_rules(filters_path)
+    except ConfigError as exc:
+        print(f"Config error: {exc}", file=out)
+        return EXIT_UNUSABLE
+
+    run_at = datetime.now(UTC).astimezone()
+    try:
+        with Store.open(db_path) as store:
+            result = daily.refilter(companies, rules, store, run_at, reports_dir)
+    except StoreError as exc:
+        print(f"Database error: {exc}", file=out)
+        return EXIT_UNUSABLE
+
+    counts = {o: 0 for o in ("match", "flagged", "possible", "excluded")}
+    for item in result.items:
+        counts[item.result.outcome.value] += 1
+    print(f"Re-filtered {len(result.items)} open postings (no boards fetched).", file=out)
+    print(
+        f"Outcomes: {counts['match']} match, {counts['flagged']} flagged, "
+        f"{counts['possible']} possible, {counts['excluded']} excluded.",
+        file=out,
+    )
+    print(
+        f"Changes: {len(result.changes)} changed outcome, "
+        f"{result.first_filtered} filtered for the first time.",
+        file=out,
+    )
+    print(f"Report: {result.report_path}", file=out)
     return EXIT_OK
 
 
