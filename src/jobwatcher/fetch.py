@@ -36,6 +36,15 @@ class CompanyResult:
     fetched: int | None = None
     board: BoardResult | None = None
     message: str | None = None
+    network_error: bool = False  # failed with no HTTP response (see SourceError)
+
+
+def looks_offline(results: list[CompanyResult]) -> bool:
+    """True when every company failed without any HTTP response.
+
+    An HTTP error (404, 503) proves the network works, so it never counts.
+    """
+    return bool(results) and all(r.network_error for r in results)
 
 
 def make_client() -> httpx.Client:
@@ -98,7 +107,7 @@ def _fetch_one(
     try:
         postings = sources[company.source].fetch(company, client)
     except SourceError as exc:
-        return CompanyResult(company, Outcome.FAILED, message=exc.reason)
+        return CompanyResult(company, Outcome.FAILED, message=exc.reason, network_error=exc.network)
 
     if not postings:
         open_before = store.count(company, PostingStatus.OPEN)

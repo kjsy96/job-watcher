@@ -71,7 +71,13 @@ Fetch every board, filter the new postings, and write the day's report:
 uv run python -m jobwatcher run
 ```
 
-The report goes to `reports/YYYY-MM-DD.md`, named for the local date. A second run on the same day writes `YYYY-MM-DD-2.md` and never replaces an earlier report. Sections, in order:
+The report goes to `reports/YYYY-MM-DD.md`, named for the local date.
+
+**`run` counts at most one run per day,** so it's safe to start it every hour. Later attempts on the same day exit straight away without fetching. Use `--force` to run again anyway; a forced run writes `YYYY-MM-DD-2.md` and never replaces an earlier report.
+
+**When the laptop is offline** (every company fails with no network response at all), `run` records nothing, writes no report, and doesn't count the day, so the next attempt tries again. If some boards fail but at least one works, that counts as the day's run, and the report lists the failures first.
+
+Sections, in order:
 
 1. **Run summary**
 2. **Source problems.** These are always listed before any results.
@@ -107,9 +113,10 @@ It prints one row per company (fetched, new, reopened, and closed counts, or the
 
 | Exit code | Meaning |
 |---|---|
-| 0 | Every company was fetched and recorded |
+| 0 | Every company was fetched and recorded, or (`run`) today already had a counted run |
 | 1 | The run finished, but at least one company failed or has a warning (see its row) |
 | 2 | Nothing ran: bad arguments, an invalid config, or an unusable database |
+| 3 | `run` only: offline. Nothing was recorded and today isn't counted, so the next attempt retries. |
 
 A company is only recorded when its board was read successfully. Anything else is shown in its row and leaves that company's data untouched for the run:
 

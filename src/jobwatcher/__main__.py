@@ -10,6 +10,11 @@ Exit codes:
   1  the run finished, but at least one company failed (see the summary;
      for run, the report is still written and lists the failure first)
   2  nothing ran: bad arguments, config, or database
+  3  run only: offline (every company failed with no HTTP response); nothing
+     was recorded and today is not counted, so the next attempt retries
+
+run counts at most one run per local day. Later attempts the same day exit
+0 without fetching, unless --force is given.
 """
 
 import argparse
@@ -29,6 +34,7 @@ from jobwatcher.store import Store, StoreError
 EXIT_OK = 0
 EXIT_COMPANY_FAILED = 1
 EXIT_UNUSABLE = 2
+EXIT_OFFLINE = 3
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -63,6 +69,11 @@ def build_parser() -> argparse.ArgumentParser:
             default=Path("data/jobwatcher.db"),
             help="SQLite database, created if missing (default: data/jobwatcher.db)",
         )
+    run_cmd.add_argument(
+        "--force",
+        action="store_true",
+        help="run even if today already has a counted run",
+    )
     for cmd in (run_cmd, refilter_cmd):
         cmd.add_argument(
             "--filters",
@@ -85,7 +96,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "fetch":
         return run_fetch(args.config, args.db, sys.stdout, sys.stderr)
     if args.command == "run":
-        return run_daily(args.config, args.filters, args.db, args.reports, sys.stdout, sys.stderr)
+        return run_daily(
+            args.config,
+            args.filters,
+            args.db,
+            args.reports,
+            sys.stdout,
+            sys.stderr,
+            force=args.force,
+        )
     if args.command == "refilter":
         return run_refilter(args.config, args.filters, args.db, args.reports, sys.stdout)
     parser.print_help()
@@ -158,6 +177,7 @@ def run_daily(
     reports_dir: Path,
     out: TextIO,
     err: TextIO | None = None,
+    force: bool = False,
 ) -> int:
     # Both configs are checked before any request, so a typo in either file
     # can't cost a run's worth of fetching.
@@ -173,10 +193,27 @@ def run_daily(
     seen_at = datetime.now(UTC).astimezone()
     try:
         with Store.open(db_path) as store, fetch.make_client() as client:
-            result = daily.run(companies, rules, store, client, seen_at, reports_dir, errors=err)
+            result = daily.run(
+                companies, rules, store, client, seen_at, reports_dir, errors=err, force=force
+            )
     except StoreError as exc:
         print(f"Database error: {exc}", file=out)
         return EXIT_UNUSABLE
+
+    if result.status is daily.RunStatus.ALREADY_RAN:
+        print(
+            f"Already ran today ({seen_at:%Y-%m-%d}); report: {result.report_path}. "
+            "Use --force to run again.",
+            file=out,
+        )
+        return EXIT_OK
+    if result.status is daily.RunStatus.OFFLINE:
+        print(
+            "Offline, will retry: every company failed without a network response. "
+            "Nothing was recorded and today is not counted.",
+            file=out,
+        )
+        return EXIT_OFFLINE
 
     print_summary(result.companies, seen_at.astimezone(UTC), out)
     counts = {o: 0 for o in ("match", "flagged", "possible", "excluded")}

@@ -18,6 +18,7 @@ import pytest
 from jobwatcher import fetch
 from jobwatcher.__main__ import (
     EXIT_COMPANY_FAILED,
+    EXIT_OFFLINE,
     EXIT_OK,
     EXIT_UNUSABLE,
     main,
@@ -66,9 +67,15 @@ board = "no-such-board"
 class FakeBoards:
     def __init__(self) -> None:
         self.requests: list[httpx.Request] = []
+        self.offline = False  # every request fails with no HTTP response
+        self.status: int | None = None  # every board answers with this HTTP status
 
     def handle(self, request: httpx.Request) -> httpx.Response:
         self.requests.append(request)
+        if self.offline:
+            raise httpx.ConnectError("getaddrinfo failed", request=request)
+        if self.status is not None:
+            return httpx.Response(self.status)
         name = ROUTES.get(str(request.url))
         if name is None:
             return httpx.Response(404)
@@ -96,9 +103,11 @@ class Paths:
         self.db = tmp_path / "data" / "jobwatcher.db"
         self.reports = tmp_path / "reports"
 
-    def run(self) -> tuple[int, str]:
+    def run(self, force: bool = False) -> tuple[int, str]:
         out = io.StringIO()
-        code = run_daily(self.config, self.filters, self.db, self.reports, out, io.StringIO())
+        code = run_daily(
+            self.config, self.filters, self.db, self.reports, out, io.StringIO(), force=force
+        )
         return code, out.getvalue()
 
     def report_files(self) -> list[str]:
@@ -146,13 +155,28 @@ def test_report_outcome_counts_match_stored_results(boards: FakeBoards, tmp_path
     assert sum(stored.values()) == 13
 
 
-def test_second_run_same_day_keeps_the_first_report(boards: FakeBoards, tmp_path: Path) -> None:
+def test_second_run_same_day_is_skipped(boards: FakeBoards, tmp_path: Path) -> None:
+    paths = Paths(tmp_path)
+    paths.run()
+    [first] = paths.report_files()
+    requests_before = len(boards.requests)
+
+    code, out = paths.run()
+
+    assert code == EXIT_OK
+    assert out.startswith("Already ran today (")
+    assert f"report: {paths.reports / first}" in out
+    assert len(boards.requests) == requests_before  # nothing fetched
+    assert paths.report_files() == [first]
+
+
+def test_force_runs_again_and_keeps_the_first_report(boards: FakeBoards, tmp_path: Path) -> None:
     paths = Paths(tmp_path)
     paths.run()
     [first] = paths.report_files()
     first_text = (paths.reports / first).read_text(encoding="utf-8")
 
-    code, out = paths.run()
+    code, out = paths.run(force=True)
 
     assert code == EXIT_OK
     assert "New postings: 0 match, 0 flagged, 0 possible, 0 excluded." in out
@@ -313,3 +337,85 @@ def test_refilter_config_error_exits_2(boards: FakeBoards, tmp_path: Path) -> No
     code, out = refilter(paths)
     assert code == EXIT_UNUSABLE
     assert out.startswith("Config error:")
+
+
+# --- once per day (issue 2.6) ---
+
+
+def runs_recorded(paths: Paths) -> list[tuple[str, str]]:
+    with Store.open(paths.db) as store:
+        rows = store._conn.execute("SELECT local_date, outcome FROM runs ORDER BY run_at")
+        return [(str(r[0]), str(r[1])) for r in rows]
+
+
+def test_full_success_is_counted_as_ok(boards: FakeBoards, tmp_path: Path) -> None:
+    paths = Paths(tmp_path)
+    assert paths.run()[0] == EXIT_OK
+    [(day, outcome)] = runs_recorded(paths)
+    assert outcome == "ok"
+    assert paths.report_files() == [f"{day}.md"]
+
+
+def test_offline_records_nothing_and_does_not_count(boards: FakeBoards, tmp_path: Path) -> None:
+    paths = Paths(tmp_path)
+    boards.offline = True
+
+    code, out = paths.run()
+
+    assert code == EXIT_OFFLINE
+    assert out.startswith("Offline, will retry")
+    assert paths.report_files() == []
+    assert runs_recorded(paths) == []
+    with Store.open(paths.db) as store:
+        assert store._conn.execute("SELECT count(*) FROM postings").fetchone()[0] == 0
+
+    # Back online an hour later: today wasn't counted, so the real run happens.
+    boards.offline = False
+    code, out = paths.run()
+    assert code == EXIT_OK
+    assert "13 fetched, 13 new" in out
+    assert len(runs_recorded(paths)) == 1
+
+
+def test_partial_failure_counts_as_todays_run(boards: FakeBoards, tmp_path: Path) -> None:
+    paths = Paths(tmp_path, CONFIG + BROKEN)
+
+    code, _ = paths.run()
+
+    assert code == EXIT_COMPANY_FAILED
+    assert [outcome for _, outcome in runs_recorded(paths)] == ["partial"]
+    # Counted: the next attempt today is skipped even though one board failed.
+    code, out = paths.run()
+    assert code == EXIT_OK and out.startswith("Already ran today")
+
+
+def test_http_errors_everywhere_are_not_offline(boards: FakeBoards, tmp_path: Path) -> None:
+    # Every board answering 503 proves the network works: a partial run, not offline.
+    paths = Paths(tmp_path)
+    boards.status = 503
+
+    code, _ = paths.run()
+
+    assert code == EXIT_COMPANY_FAILED
+    assert [outcome for _, outcome in runs_recorded(paths)] == ["partial"]
+    report = (paths.reports / paths.report_files()[0]).read_text(encoding="utf-8")
+    assert report.count("HTTP 503") >= 3
+
+
+def test_one_company_offline_and_others_ok_is_partial(boards: FakeBoards, tmp_path: Path) -> None:
+    # A single unreachable host is a source failure, not "the machine is offline".
+    original = boards.handle
+
+    def one_host_down(request: httpx.Request) -> httpx.Response:
+        if "lever" in str(request.url):
+            boards.requests.append(request)
+            raise httpx.ConnectTimeout("timed out", request=request)
+        return original(request)
+
+    boards.handle = one_host_down  # type: ignore[method-assign]
+    paths = Paths(tmp_path)
+
+    code, _ = paths.run()
+
+    assert code == EXIT_COMPANY_FAILED
+    assert [outcome for _, outcome in runs_recorded(paths)] == ["partial"]
