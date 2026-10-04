@@ -201,3 +201,62 @@ Even without documented limits, the CLAUDE.md rules still apply:
 - a clear user agent
 - timeouts
 - a daily cadence
+
+## Adzuna (discovery only)
+
+**Used only to discover employers** (Phase 2b), never to filter or judge postings: its descriptions are snippets, and the aggregator API test failed it for that reason (`docs/aggregator-test.md`). Confirmed on **2026-10-04** (issue 2b.1).
+
+**Official docs:**
+- Search: https://developer.adzuna.com/docs/search
+- Terms: https://developer.adzuna.com/docs/terms_of_service
+
+Adzuna's interactive reference (`/activedocs`) renders in the browser and couldn't be read as a document. So everything below that isn't on the two pages above was checked with real requests (29 calls), and is marked **checked**.
+
+### Endpoint and authentication
+
+- `GET https://api.adzuna.com/v1/api/jobs/{country}/search/{page}`. The docs examples use `http://`. **Checked:** `https://` works, and it's the only form we use.
+- **Authentication:** `app_id` and `app_key` are sent as **query parameters**, so a full request URL contains the key. **Request URLs are never printed, logged, or saved.** Credentials live only in the gitignored `.env` (see `.env.example`).
+- **The response contains the app ID.** Every result's `redirect_url` carries `utm_source=<app_id>` (**checked**). The key never comes back. Saved fixtures must have the app ID scrubbed, and reports containing these links stay in the gitignored `reports/` folder.
+
+### Query parameters
+
+| Parameter | Effect | Source |
+|---|---|---|
+| `what` | Keywords, all must match | Docs |
+| `what_exclude` | Keywords to exclude | Docs |
+| `where` | Location text | Docs |
+| `results_per_page` | Page size | Docs. **Checked:** the maximum is **50**; asking for 100 silently returns 50. |
+| `sort_by`, `salary_min`, `full_time`, `permanent`, `content-type` | As named | Docs |
+| `what_or` | Any of the keywords | **Checked:** "commissioning mining" returned more results than "commissioning" alone |
+| `title_only` | Keywords matched in the title only | **Checked:** 944 results vs 10,920 for the same words in `what` |
+| `max_days_old` | Only ads at most N days old | **Checked:** 3 days returned 971 results vs 10,920 |
+
+**Unknown parameters fail with HTTP 400** (**checked**). They aren't silently ignored, so a typo in a parameter name shows up immediately.
+
+### Countries
+
+**Not documented** on the official pages; the docs only show `gb` as an example. **Checked** with one request per country, HTTP 200 meaning supported:
+
+| Supported | Not supported (HTTP 404) |
+|---|---|
+| `us`, `ca`, `at`, `be`, `de`, `es`, `fr`, `it`, `nl`, `pl`, `ch` | `se`, `no`, `ie`, `dk`, `fi`, `pt` |
+
+Discovery can't cover Sweden, Norway, Ireland, Denmark, Finland, or Portugal through Adzuna. Those stay with Claude-assisted discovery (Phase 5).
+
+### Response
+
+- **Top level** (**checked**):
+  - `count`: total matches, which the docs don't show
+  - `mean`
+  - `results`
+  - `__CLASS__`
+- **Fields per result:** `id`, `title`, `description`, `created`, `company.display_name`, `location.display_name`, `location.area` (a list from country down to town), `category.label` and `category.tag`, `redirect_url`, `salary_min`, `salary_max`, `salary_is_predicted`, `contract_time`, `latitude`, `longitude`, and `adref`.
+- **`company.display_name` is the employer field** discovery groups by.
+- **`description` is a snippet.** The docs say "we currently only provide a snipped of the job description". **Checked:** 500 characters.
+- **`created`** is ISO 8601 UTC, e.g. `2026-09-24T13:53:51Z`.
+
+### Limits and terms
+
+- **Default limits** (terms page): 25 calls per minute, 250 per day, 1,000 per week, 2,500 per month. Discovery stays well under these, spacing calls at least 2.6 seconds apart.
+- **Permitted use** includes "personal research". Published Adzuna data must credit "The Adzuna API", so discovery reports carry that credit. The owner's review is in `docs/decisions.md`.
+- **Never follow `redirect_url` automatically.** Those links are Adzuna's paid click-throughs, so they're never used to find an employer's job board.
