@@ -10,14 +10,14 @@ any fetching itself.
 import json
 import sqlite3
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 from types import TracebackType
 from typing import Self
 
 from jobwatcher.models import Company, Posting, PostingStatus, Remote, SourceName
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 # STRICT makes SQLite enforce column types (by default it stores whatever it
 # is given). The CHECK constraints keep enum columns to their known values,
@@ -45,6 +45,25 @@ CREATE TABLE postings (
 
 CREATE INDEX postings_by_board ON postings (source, board, status);
 """
+
+
+# Each later schema version is reached by running its migration once.
+# A brand-new database is built the same way (version 1 schema, then every
+# migration in order), so a fresh database and a migrated one are identical.
+_MIGRATIONS: dict[int, str] = {
+    # Version 2 (issue 2.6): one row per counted daily run, so "already ran
+    # today" survives restarts and the run history is queryable later.
+    2: """
+CREATE TABLE runs (
+    run_at      TEXT NOT NULL,
+    local_date  TEXT NOT NULL,
+    outcome     TEXT NOT NULL CHECK (outcome IN ('ok', 'partial')),
+    report_path TEXT NOT NULL
+) STRICT;
+
+CREATE INDEX runs_by_date ON runs (local_date);
+""",
+}
 
 
 class StoreError(Exception):
@@ -131,17 +150,38 @@ class Store:
         has_tables = self._conn.execute(
             "SELECT count(*) FROM sqlite_schema WHERE type = 'table'"
         ).fetchone()[0]
-        if version != 0 or has_tables:
-            # Never guess with someone else's (or an older) database.
+        if (version == 0 and has_tables) or version > SCHEMA_VERSION or version < 0:
+            # Never guess with someone else's (or a newer) database.
             raise StoreError(
                 f"database schema version is {version}, expected {SCHEMA_VERSION}; "
                 "it was created by a different version of this tool"
             )
+        # All-or-nothing: a failed migration leaves the database at its old
+        # version, untouched.
         with self._conn:
-            for statement in _SCHEMA.split(";"):
-                if statement.strip():
-                    self._conn.execute(statement)
+            if version == 0:
+                _run_script(self._conn, _SCHEMA)
+                version = 1
+            for target in range(version + 1, SCHEMA_VERSION + 1):
+                _run_script(self._conn, _MIGRATIONS[target])
             self._conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
+
+    def record_run(self, run_at: datetime, outcome: str, report_path: str) -> None:
+        """Record a counted daily run: 'ok', or 'partial' if some companies failed."""
+        with self._conn:
+            self._conn.execute(
+                "INSERT INTO runs (run_at, local_date, outcome, report_path) VALUES (?, ?, ?, ?)",
+                (_to_text(run_at), f"{run_at:%Y-%m-%d}", outcome, report_path),
+            )
+
+    def run_on(self, local_date: date) -> tuple[str, str] | None:
+        """(outcome, report path) of the latest counted run on that local date."""
+        row = self._conn.execute(
+            "SELECT outcome, report_path FROM runs WHERE local_date = ? "
+            "ORDER BY run_at DESC LIMIT 1",
+            (f"{local_date:%Y-%m-%d}",),
+        ).fetchone()
+        return None if row is None else (str(row["outcome"]), str(row["report_path"]))
 
     def record_board(
         self, company: Company, postings: list[Posting], seen_at: datetime
@@ -326,3 +366,11 @@ def _stored(row: sqlite3.Row) -> StoredPosting:
         last_seen_at=_from_text(str(row["last_seen_at"])),
         status=PostingStatus(row["status"]),
     )
+
+
+def _run_script(conn: sqlite3.Connection, script: str) -> None:
+    # Statement by statement (not executescript), so it stays inside the
+    # caller's transaction and rolls back with it.
+    for statement in script.split(";"):
+        if statement.strip():
+            conn.execute(statement)

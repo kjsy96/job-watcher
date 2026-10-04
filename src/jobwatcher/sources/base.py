@@ -21,11 +21,16 @@ class SourceError(Exception):
     unexpected shape) becomes this one type, so the run summary can catch
     it per company and report it. A failure must never look like an empty
     job list.
+
+    network is True when no HTTP response arrived at all (DNS failure,
+    refused connection, timeout). If every company fails that way, the
+    machine is offline rather than the boards being broken.
     """
 
-    def __init__(self, company: Company, reason: str) -> None:
+    def __init__(self, company: Company, reason: str, *, network: bool = False) -> None:
         self.company = company
         self.reason = reason
+        self.network = network
         super().__init__(f"{company.name} ({company.source}:{company.board}): {reason}")
 
 
@@ -68,7 +73,9 @@ class Source(ABC):
             raise SourceError(company, f"HTTP {exc.response.status_code}") from exc
         except httpx.HTTPError as exc:
             # Timeouts, DNS failures, refused connections, and similar.
-            raise SourceError(company, f"request failed: {type(exc).__name__}: {exc}") from exc
+            raise SourceError(
+                company, f"request failed: {type(exc).__name__}: {exc}", network=True
+            ) from exc
         try:
             payload: object = response.json()
         except ValueError as exc:
