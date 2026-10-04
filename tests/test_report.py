@@ -8,7 +8,7 @@ from jobwatcher.fetch import Outcome as FetchOutcome
 from jobwatcher.filter_config import FilterRules, load_filter_rules
 from jobwatcher.filters import FilterResult, Outcome
 from jobwatcher.models import Company, Posting, Remote, SourceName
-from jobwatcher.report import ReportItem, escape, render_report
+from jobwatcher.report import Change, ReportItem, escape, render_refilter_report, render_report
 from jobwatcher.store import BoardResult
 
 RULES: FilterRules = load_filter_rules(Path(__file__).parent / "fixtures" / "filters_test.toml")
@@ -265,3 +265,32 @@ def test_clock_uses_a_numeric_offset() -> None:
     sydney = datetime(2026, 10, 4, 18, 30, tzinfo=timezone(timedelta(hours=11)))
     report = render_report(sydney, [], [])
     assert "Run at 2026-10-04 18:30 (UTC+11:00)" in report
+
+
+# --- refilter report (issue 48) ---
+
+
+def test_refilter_report_says_nothing_was_fetched() -> None:
+    report = render_refilter_report(RUN_AT, FULL, [], first_filtered=0)
+    assert report.startswith("# Job Watcher refilter: 2026-10-04\n")
+    assert "No boards were fetched." in report
+    assert "Not checked: refilter reads stored postings and makes no requests." in report
+    assert "## Companies" not in report
+    assert "No outcome changed." in report
+    assert "No matches." not in report and "No new" not in report
+
+
+def test_refilter_report_lists_changes_best_outcome_first() -> None:
+    changes = [
+        Change(item("Now Excluded", Outcome.EXCLUDED).posting, "flagged", "excluded"),
+        Change(item("Now Match", Outcome.MATCH).posting, "flagged", "match"),
+    ]
+    report = render_refilter_report(RUN_AT, [], changes, first_filtered=3)
+    assert (
+        "- **Changes since last filtered:** 2 changed outcome, 3 filtered for the first time"
+        in report
+    )
+    block = section(report, "Changes")
+    assert block.index("Now Match") < block.index("Now Excluded")
+    assert "flagged -> **match**" in block
+    assert "No matches." in report  # empty sections drop the word "new"

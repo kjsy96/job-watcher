@@ -16,7 +16,15 @@ import httpx
 import pytest
 
 from jobwatcher import fetch
-from jobwatcher.__main__ import EXIT_COMPANY_FAILED, EXIT_OK, EXIT_UNUSABLE, main, run_daily
+from jobwatcher.__main__ import (
+    EXIT_COMPANY_FAILED,
+    EXIT_OK,
+    EXIT_UNUSABLE,
+    main,
+    run_daily,
+    run_fetch,
+    run_refilter,
+)
 from jobwatcher.run import next_report_path
 from jobwatcher.store import Store
 
@@ -213,3 +221,95 @@ def test_next_report_path_never_reuses_a_name(tmp_path: Path) -> None:
     (tmp_path / "2026-10-04.md").touch()
     (tmp_path / "2026-10-04-2.md").touch()
     assert next_report_path(tmp_path, day).name == "2026-10-04-3.md"
+
+
+# --- refilter (issue 48) ---
+
+
+def refilter(paths: Paths) -> tuple[int, str]:
+    out = io.StringIO()
+    code = run_refilter(paths.config, paths.filters, paths.db, paths.reports, out)
+    return code, out.getvalue()
+
+
+def test_refilter_after_run_changes_nothing_and_sends_no_requests(
+    boards: FakeBoards, tmp_path: Path
+) -> None:
+    paths = Paths(tmp_path)
+    paths.run()
+    requests_before = len(boards.requests)
+
+    code, out = refilter(paths)
+
+    assert code == EXIT_OK
+    assert len(boards.requests) == requests_before  # no network at all
+    assert "Re-filtered 13 open postings (no boards fetched)." in out
+    assert "Changes: 0 changed outcome, 0 filtered for the first time." in out
+    names = paths.report_files()
+    assert any(re.fullmatch(r"refilter-\d{4}-\d{2}-\d{2}\.md", n) for n in names)
+
+
+def test_refilter_filters_postings_recorded_before_filtering_existed(
+    boards: FakeBoards, tmp_path: Path
+) -> None:
+    paths = Paths(tmp_path)
+    run_fetch(paths.config, paths.db, io.StringIO())  # fetch only: no results stored
+
+    code, out = refilter(paths)
+
+    assert code == EXIT_OK
+    assert "Changes: 0 changed outcome, 13 filtered for the first time." in out
+    with Store.open(paths.db) as store:
+        assert store.filter_result("greenhouse:gitlab:8638232002")[0] is not None
+
+
+def test_refilter_lists_outcomes_that_changed(boards: FakeBoards, tmp_path: Path) -> None:
+    paths = Paths(tmp_path)
+    paths.run()
+    posting_id = "greenhouse:gitlab:8638232002"
+    with Store.open(paths.db) as store:
+        current, reasons = store.filter_result(posting_id)
+        assert current == "excluded"  # under the neutral test rules
+        # Pretend an earlier rule set had matched it, so this refilter differs.
+        store.set_filter_results([(posting_id, "match", reasons)])
+
+    _, out = refilter(paths)
+
+    assert "Changes: 1 changed outcome, 0 filtered for the first time." in out
+    name = next(n for n in paths.report_files() if n.startswith("refilter-"))
+    changes = (paths.reports / name).read_text(encoding="utf-8").split("## Changes")[1]
+    assert "AI Transformation Owner, CRO" in changes.split("## ")[0]
+    assert "match -> **excluded**" in changes.split("## ")[0]
+    with Store.open(paths.db) as store:
+        assert store.filter_result(posting_id)[0] == "excluded"  # stored again
+
+
+def test_refilter_skips_closed_postings(boards: FakeBoards, tmp_path: Path) -> None:
+    paths = Paths(tmp_path)
+    paths.run()
+    with Store.open(paths.db) as store:
+        store._conn.execute(
+            "UPDATE postings SET status = 'closed' WHERE id = 'greenhouse:gitlab:8638232002'"
+        )
+        store._conn.commit()
+
+    _, out = refilter(paths)
+    assert "Re-filtered 12 open postings" in out
+
+
+def test_refilter_never_overwrites_its_report(boards: FakeBoards, tmp_path: Path) -> None:
+    paths = Paths(tmp_path)
+    paths.run()
+    refilter(paths)
+    refilter(paths)
+    refilters = [n for n in paths.report_files() if n.startswith("refilter-")]
+    assert len(refilters) == 2
+    assert any(n.endswith("-2.md") for n in refilters)
+
+
+def test_refilter_config_error_exits_2(boards: FakeBoards, tmp_path: Path) -> None:
+    paths = Paths(tmp_path)
+    paths.filters = tmp_path / "missing.toml"
+    code, out = refilter(paths)
+    assert code == EXIT_UNUSABLE
+    assert out.startswith("Config error:")

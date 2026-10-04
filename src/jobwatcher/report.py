@@ -57,6 +57,82 @@ def render_report(
     return "\n".join(lines).rstrip() + "\n"
 
 
+@dataclass(frozen=True, slots=True)
+class Change:
+    """A posting whose outcome differs from its previously stored result."""
+
+    posting: Posting
+    before: str
+    after: str
+
+
+def render_refilter_report(
+    run_at: datetime,
+    items: Sequence[ReportItem],
+    changes: Sequence[Change],
+    first_filtered: int,
+) -> str:
+    """Every open stored posting under the current rules, and what changed.
+
+    Same layout as the daily report, but nothing was fetched, so the source
+    and company sections say so rather than looking empty or healthy.
+    """
+    by_outcome: dict[Outcome, list[ReportItem]] = {o: [] for o in Outcome}
+    for item in items:
+        by_outcome[item.result.outcome].append(item)
+
+    lines: list[str] = [
+        f"# Job Watcher refilter: {run_at:%Y-%m-%d}",
+        "",
+        f"Run at {_clock(run_at)}",
+        "",
+        f"- **Re-filtered:** {len(items)} open stored postings with the current rules. "
+        "No boards were fetched.",
+        f"- **Outcomes:** {len(by_outcome[Outcome.MATCH])} match, "
+        f"{len(by_outcome[Outcome.FLAGGED])} flagged, "
+        f"{len(by_outcome[Outcome.POSSIBLE])} possible, "
+        f"{len(by_outcome[Outcome.EXCLUDED])} excluded",
+        f"- **Changes since last filtered:** {len(changes)} changed outcome, "
+        f"{first_filtered} filtered for the first time",
+        "",
+        "## Source problems",
+        "",
+        "Not checked: refilter reads stored postings and makes no requests. "
+        "Use `run` or `fetch` to check the job boards.",
+        "",
+    ]
+    lines += _changes(changes)
+    lines += _matches(by_outcome[Outcome.MATCH], scope="")
+    lines += _flagged(by_outcome[Outcome.FLAGGED], scope="")
+    lines += _possible(by_outcome[Outcome.POSSIBLE], scope="")
+    lines += _excluded(by_outcome[Outcome.EXCLUDED], scope="")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+_OUTCOME_ORDER = {o.value: n for n, o in enumerate(Outcome)}
+
+
+def _changes(changes: Sequence[Change]) -> list[str]:
+    lines = ["## Changes", ""]
+    if not changes:
+        return [*lines, "No outcome changed.", ""]
+    lines += ["Outcomes that differ from the last stored result, best new outcome first.", ""]
+    ordered = sorted(
+        changes,
+        key=lambda c: (
+            _OUTCOME_ORDER.get(c.after, 99),
+            c.posting.company.lower(),
+            c.posting.title.lower(),
+        ),
+    )
+    for change in ordered:
+        lines.append(
+            f"- {_link(change.posting)}: {escape(change.posting.company)}: "
+            f"{change.before} -> **{change.after}**"
+        )
+    return [*lines, ""]
+
+
 def escape(text: str) -> str:
     """Escape text from a posting so it can't break links, emphasis, or tables."""
     return _MARKDOWN_SPECIAL.sub(lambda m: "\\" + m.group(0), " ".join(text.split()))
@@ -131,10 +207,10 @@ def _entry(item: ReportItem, reasons: list[str], marker: str = "") -> list[str]:
     return [head, *(f"  - {escape(reason)}" for reason in reasons)]
 
 
-def _matches(items: list[ReportItem]) -> list[str]:
+def _matches(items: list[ReportItem], scope: str = "new ") -> list[str]:
     lines = ["## Matches", ""]
     if not items:
-        return [*lines, "No new matches.", ""]
+        return [*lines, f"No {scope}matches.", ""]
     tiers = sorted({i.result.tier.number for i in items if i.result.tier is not None})
     for number in tiers:
         in_tier = [i for i in items if i.result.tier and i.result.tier.number == number]
@@ -146,10 +222,10 @@ def _matches(items: list[ReportItem]) -> list[str]:
     return lines
 
 
-def _flagged(items: list[ReportItem]) -> list[str]:
+def _flagged(items: list[ReportItem], scope: str = "new ") -> list[str]:
     lines = ["## Flagged", ""]
     if not items:
-        return [*lines, "No new flagged postings.", ""]
+        return [*lines, f"No {scope}flagged postings.", ""]
     lines += ["Each needs a human look; the first reason is why.", ""]
     pathway = [i for i in items if i.result.pathway_note]
     others = [i for i in items if not i.result.pathway_note]
@@ -160,10 +236,10 @@ def _flagged(items: list[ReportItem]) -> list[str]:
     return [*lines, ""]
 
 
-def _possible(items: list[ReportItem]) -> list[str]:
+def _possible(items: list[ReportItem], scope: str = "new ") -> list[str]:
     lines = ["## Possible", ""]
     if not items:
-        return [*lines, "No new possible postings.", ""]
+        return [*lines, f"No {scope}possible postings.", ""]
     lines += ["Title fits, but no domain or work terms were found.", ""]
     for item in sorted(items, key=lambda i: (i.posting.company.lower(), i.posting.title.lower())):
         p = item.posting
@@ -184,14 +260,14 @@ def _category(reason: str) -> str:
     return "other"
 
 
-def _excluded(items: list[ReportItem]) -> list[str]:
+def _excluded(items: list[ReportItem], scope: str = "new ") -> list[str]:
     lines = ["## Excluded", ""]
     if not items:
-        return [*lines, "No new postings were excluded.", ""]
+        return [*lines, f"No {scope}postings were excluded.", ""]
     # A posting can be excluded for several reasons; each category counts it once.
     counts = Counter(cat for i in items for cat in {_category(r) for r in i.result.reasons})
     breakdown = ", ".join(f"{name} {n}" for name, n in counts.most_common())
-    lines += [f"{len(items)} new postings excluded (by reason: {breakdown}).", ""]
+    lines += [f"{len(items)} {scope}postings excluded (by reason: {breakdown}).", ""]
     lines += ["<details>", "<summary>Every excluded posting and why</summary>", ""]
     for item in sorted(items, key=lambda i: (i.posting.company.lower(), i.posting.title.lower())):
         p = item.posting
