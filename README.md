@@ -125,6 +125,66 @@ A company is only recorded when its board was read successfully. Anything else i
 
 One company's problem never stops the others.
 
+## Scheduled daily run (Windows Task Scheduler)
+
+Task Scheduler starts `scripts\run_daily.bat` at logon and every hour. That's safe because `run` counts only one real run per day, and being offline doesn't use it up. The task never wakes the laptop, and it runs with no window.
+
+### Set it up with the script
+
+From the repo folder in PowerShell, preview first, then register:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\register_task.ps1 -DryRun
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\register_task.ps1
+```
+
+This creates `\JobWatcher\Job Watcher daily run` for your user, with no admin rights needed. Running it again updates the task.
+
+### Or set it up by hand
+
+In **Task Scheduler**, choose **Create Task**:
+
+1. **General:** name it `Job Watcher daily run`, and choose **Run only when user is logged on**.
+2. **Triggers:**
+   - **At log on** (your user).
+   - **One time**, starting today at 00:00, with **Repeat task every: 1 hour**, **for a duration of: Indefinitely**.
+3. **Actions:** **Start a program**.
+   - Program: `C:\Windows\System32\conhost.exe`
+   - Arguments: `--headless "<repo>\scripts\run_daily.bat"`
+   - Start in: `<repo>`
+
+   Replace `<repo>` with this folder's full path. `conhost --headless` keeps a console window from flashing up every hour.
+4. **Conditions:**
+   - Tick **Start only if the following network connection is available: Any connection**.
+   - Untick **Wake the computer to run this task**.
+   - Untick **Start the task only if the computer is on AC power**.
+5. **Settings:**
+   - Tick **Run task as soon as possible after a scheduled start is missed**.
+   - Set **Stop the task if it runs longer than: 30 minutes**.
+   - Set **If the task is already running: Do not start a new instance**.
+
+### Check that it's working
+
+- **`logs\run.log`** (gitignored) gets one block per attempt: the time, run's output, and the exit code. Most hourly blocks say "Already ran today".
+- **`reports\`** gets one `YYYY-MM-DD.md` per day the laptop was online.
+- **Task Scheduler's "Last Run Result"** shows run's exit code:
+
+| Last Run Result | Meaning |
+|---|---|
+| `0x0` | OK, or already ran today |
+| `0x1` | Ran, but some companies failed. The report lists them first. |
+| `0x2` | Config or database problem; nothing ran. See `logs\run.log`. |
+| `0x3` | Offline. Today isn't counted, so the next hour retries. |
+
+### Remove it
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\register_task.ps1 -Remove
+```
+
 ## Development
 
 Every change follows the workflow in [CLAUDE.md](CLAUDE.md): an issue first, a branch named `<issue-number>-<short-slug>`, then a PR with a test plan that passes CI.
