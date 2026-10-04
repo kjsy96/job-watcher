@@ -6,7 +6,7 @@ If `CLAUDE.local.md` exists, read it too. It holds private working context for t
 
 ## What this project is
 
-A personal tool that pulls job postings from a list of target companies through public job board data (Greenhouse, Lever, Ashby), filters them against configurable rules, and produces a daily shortlist of new matches. Later phases expose the posting database to Claude through a custom MCP server so Claude can help review fit.
+A personal tool that pulls job postings from a list of target companies through public job board data (Greenhouse, Lever, Ashby), filters them against configurable rules, and produces a daily shortlist of new matches. A weekly discovery feed (Phase 2b) uses the Adzuna API only to find companies the owner hasn't heard of; Adzuna data is never used to filter or judge postings. Later phases expose the posting database to Claude through a custom MCP server so Claude can help review fit.
 
 The owner makes every application decision. This tool stops at a shortlist. It never applies, emails, or contacts anyone.
 
@@ -60,6 +60,6 @@ The owner makes every application decision. This tool stops at a shortlist. It n
 ## Things to ask the owner about rather than decide alone
 
 - Adding or removing a filter rule, or changing what counts as an exclusion versus a flag
-- Adding a new data source beyond Greenhouse, Lever, and Ashby
+- Adding a new data source beyond Greenhouse, Lever, and Ashby (Adzuna is approved for discovery only, never for filtering)
 - Anything that would send data anywhere other than the local machine
 - Scope changes to a phase

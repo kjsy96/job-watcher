@@ -1,6 +1,6 @@
 # Job Watcher - Project Plan
 
-Version 12 - October 2026 (v12: moved the aggregator API test checkpoint from after Phase 2 to after Phase 1, since most of the owner's target companies are on platforms the tool can't read. v11: recorded the owner's decisions on repo visibility, name, filters, and report location; company list still open. v10: added pathway title terms to sponsorship tiers, so occupation-based work permit candidates are noted and not excluded on eligibility wording alone. v9: added location tiers that require visa sponsorship, sponsorship detection in issue 2.3 (now 8 points), and handling for ambiguous short codes like "CA". v8: replaced the single location allow list with preference tiers, US-wide remote handling, non-US remote exclusion, and flagging of ambiguous locations. v7: added story point estimates to every issue, with phase totals. v6: restructured filtering into separate role title, domain, and work term lists with an overlap score and a new Possible tier, so generic titles in strong-fit industries are not missed. v5: added issue 2.9, a UI review after the Phase 2 week of real use. v4: added Phase 5, Claude-assisted company discovery with owner approval; moved company discovery out of the out-of-scope list. v3: prepared for a public repo by neutralizing example locations, rewording the purpose section, and removing resume wording. v2: added the aggregator API test checkpoint after Phase 2; recorded the job alert email option as considered and set aside)
+Version 13 - October 2026 (v13: added Phase 2b, a discovery feed using Adzuna for finding companies only (never for filtering), after issue 2.7; Phase 5 reuses its board detection and approval step. v12: moved the aggregator API test checkpoint from after Phase 2 to after Phase 1, since most of the owner's target companies are on platforms the tool can't read. v11: recorded the owner's decisions on repo visibility, name, filters, and report location; company list still open. v10: added pathway title terms to sponsorship tiers, so occupation-based work permit candidates are noted and not excluded on eligibility wording alone. v9: added location tiers that require visa sponsorship, sponsorship detection in issue 2.3 (now 8 points), and handling for ambiguous short codes like "CA". v8: replaced the single location allow list with preference tiers, US-wide remote handling, non-US remote exclusion, and flagging of ambiguous locations. v7: added story point estimates to every issue, with phase totals. v6: restructured filtering into separate role title, domain, and work term lists with an overlap score and a new Possible tier, so generic titles in strong-fit industries are not missed. v5: added issue 2.9, a UI review after the Phase 2 week of real use. v4: added Phase 5, Claude-assisted company discovery with owner approval; moved company discovery out of the out-of-scope list. v3: prepared for a public repo by neutralizing example locations, rewording the purpose section, and removing resume wording. v2: added the aggregator API test checkpoint after Phase 2; recorded the job alert email option as considered and set aside)
 
 ## 1. Purpose
 
@@ -33,7 +33,7 @@ Later phases connect the posting database to Claude through a custom MCP server,
 ### Out of scope (v1)
 
 - LinkedIn, Indeed, Glassdoor, or any site requiring login or restricting automated access
-- Workday, SuccessFactors, Taleo, iCIMS, and other large-employer systems (most big OEMs such as Caterpillar, Komatsu, Sandvik). Pulling from these directly is not planned. Coverage of large employers through a job aggregator API is tested at the checkpoint after Phase 1.
+- Workday, SuccessFactors, Taleo, iCIMS, and other large-employer systems (most big OEMs such as Caterpillar, Komatsu, Sandvik). Pulling from these directly is not planned. Coverage of large employers through a job aggregator API was tested at the checkpoint after Phase 1 and failed on shortened descriptions; an aggregator is used only to discover companies (Phase 2b), not to judge postings.
 - Parsing job alert emails (LinkedIn or company career sites). Considered and set aside: alerts contain only titles and links, so full descriptions would still need manual reading.
 - Adding companies to the list without the owner's approval. Discovery proposes; the owner decides.
 - Applying, emailing, messaging, or any action outside the local machine
@@ -184,7 +184,7 @@ Role titles and the fields a candidate fits are kept separate on purpose. Many g
 
 Each numbered item below is one GitHub Issue. Each phase ends with a tagged release.
 
-**Story points** use a Fibonacci scale (1, 2, 3, 5, 8) and are relative estimates of effort and uncertainty, not hours. They assume Claude Code does most of the coding, with the owner reviewing, testing, and approving every change. Items that are mostly the owner's own time (writing the profile summary, running the tool for a week, reviewing results) are pointed for that effort too. Re-estimate during sprint planning once real velocity is known. Total across all phases and the checkpoint: 108 points.
+**Story points** use a Fibonacci scale (1, 2, 3, 5, 8) and are relative estimates of effort and uncertainty, not hours. They assume Claude Code does most of the coding, with the owner reviewing, testing, and approving every change. Items that are mostly the owner's own time (writing the profile summary, running the tool for a week, reviewing results) are pointed for that effort too. Re-estimate during sprint planning once real velocity is known. Total across all phases and the checkpoint: 118 points (108 before v13 added Phase 2b and trimmed Phase 5).
 
 ### Phase 0 - Repo setup (v0.1.0)
 
@@ -252,10 +252,47 @@ Phase estimate: 29 points.
    - If some sources fail but others succeed, count it as today's run and list the failed sources in the report, per the no-silent-failures rule.
    - Tests for each case: already ran today, offline, partial failure, full success.
 2.7 [2 pts] `scripts/run_daily.bat` and written Windows Task Scheduler setup steps in the README. The task is triggered at logon and every hour, with "start only if a network connection is available" and "run as soon as possible after a scheduled start is missed" turned on. It does not wake the laptop. The frequent triggers just give the program chances to run, and the logic in 2.6 makes sure only one real run happens per day.
-2.8 [3 pts] Run it daily for one week and tune rules with the owner. Log every rule change and the reason in `docs/decisions.md`.
+2.8 [3 pts] Run it daily for one week and tune rules with the owner. Log every rule change and the reason in `docs/decisions.md`. The week starts once 2.7 is in place and runs alongside the discovery feed (Phase 2b), so the daily reports accumulate while discovery is built.
 2.9 [1 pt] UI review: at the end of the week, the owner notes which steps felt clumsy (reading reports, reviewing excluded postings, approving candidates, tracking what was done with a posting). Record the decision in `docs/decisions.md`: no UI, a single-file HTML report (no server, read-only), or a small local UI phase scoped to the specific clumsy step.
 
 Done when: a week of normal laptop use (shut and offline at irregular times) produces exactly one report per day the laptop was online, and the reports are ones the owner finds useful, with rule changes logged.
+
+### Phase 2b - Discovery feed (part of v0.3.0)
+
+Phase estimate: 14 points. Built after 2.7, while the 2.8 tuning week runs. Added in v13 of this plan by owner decision; see `docs/decisions.md`.
+
+**Goal:** find companies and roles the owner hasn't heard of yet. The daily run only watches companies already on the list, and finding new ones is where most of the owner's search time goes.
+
+**How it uses the aggregator:** the aggregator API test showed Adzuna returns only shortened descriptions, so it can't be used to *judge* postings. Discovery only needs to learn that an unfamiliar company is hiring for a matching role. Once the owner approves a company, its full postings come from its own Greenhouse, Lever, or Ashby board, and the normal filters judge them. Adzuna data is never used for filtering decisions.
+
+**Terms (reviewed by the owner):** Adzuna's terms permit "personal research". Their restriction on aggregated use applies to commercial, government, or academic organisations on a trial. Any Adzuna data that's published must credit "The Adzuna API", so discovery reports carry that credit even though they stay private.
+
+2b.1 [2 pts] Confirm Adzuna's search API from its official documentation before writing code. Record it in `docs/sources.md`:
+   - the endpoint and query parameters
+   - the country codes for the US, Canada, and the target EU countries
+   - the employer field
+   - the rate limits
+
+   The owner signs up for an API key personally and puts it in the gitignored `.env`. A committed `.env.example` lists the variable names with no values.
+
+2b.2 [5 pts] Add `python -m jobwatcher discover`. It searches Adzuna with the owner's discovery terms and groups the results by employer, keeping a few example titles per employer.
+   - **Terms:** role and industry terms from a gitignored `config/discovery.toml`, with a committed example file.
+   - **Limits:** stays well within the rate limits.
+   - **Skipped:** employers already in `companies.toml`, or already rejected in a gitignored `config/rejected_companies.toml`.
+   - **Tests:** use saved fixtures and make no network calls.
+
+2b.3 [3 pts] Job board detection for each new employer. Try the employer's likely board name on the Greenhouse, Lever, and Ashby public endpoints: at most one request per platform per employer, with results cached so an employer is checked only once.
+   - Never follow Adzuna's job links to find a board. Those links are Adzuna's paid click-throughs, and automated clicks would misuse them.
+   - Employers whose board can't be found are listed for the owner, not guessed.
+
+2b.4 [3 pts] Discovery report and approval. Each run writes `reports/discovery-YYYY-MM-DD.md`, credited "Source: The Adzuna API". It has one entry per candidate employer: example titles, why it surfaced, and its detected board or "board not found".
+   - **Approve:** the owner approves with a command, which adds the company to `companies.toml`.
+   - **Reject:** rejecting with a reason adds it to `config/rejected_companies.toml`, so it isn't proposed again.
+   - Nothing is ever added automatically.
+
+2b.5 [1 pt] Weekly cadence. `discover` runs at most once per week, using the same once-per-period pattern as 2.6, so the daily scheduled task can start it without extra setup.
+
+Done when: two weekly discovery runs have produced candidates the owner reviewed, and at least one approved company is appearing in the daily report.
 
 ### Phase 3 - MCP server (v0.4.0)
 
@@ -301,7 +338,7 @@ Done when: the owner agrees with most of the ratings, and the disagreements are 
 
 ### Phase 5 - Company discovery (v0.6.0)
 
-Phase estimate: 18 points.
+Phase estimate: 14 points (was 18; board detection and the approval step now come from Phase 2b).
 
 Goal: find companies that fit the owner's background and are not yet on the list, and propose them for approval. Nothing is added automatically.
 
@@ -309,9 +346,9 @@ Goal: find companies that fit the owner's background and are not yet on the list
    - searches for companies in the owner's target categories (defined in a gitignored `config/discovery.toml`, with a committed example file)
    - uses companies whose postings were rated Strong fit in Phase 4 as examples, and looks for similar companies
    - skips companies already on the list or already rejected
-   - checks each candidate's careers page to identify its job board platform (Greenhouse, Lever, Ashby, or other)
+   - identifies each candidate's job board platform with the detection built in 2b.3
 5.2 [2 pts] Output goes to `reports/company-candidates-YYYY-MM.md`, one entry per company: name, category, one line on why it fits, one line on any concern, job board platform, and careers page link. Companies on unsupported platforms (Workday and similar) are still listed, clearly marked, so the owner can decide whether to track them by hand.
-5.3 [5 pts] Approval step: the owner marks each candidate approve or reject. Approved companies on supported platforms are added to `companies.toml`. Rejected companies go to a gitignored `config/rejected_companies.toml` with a short reason, so they are not proposed again.
+5.3 [1 pt] Approval step: reuse the 2b.4 approve/reject commands, so skill proposals and discovery-feed candidates share one approval flow. The owner marks each candidate approve or reject. Approved companies on supported platforms are added to `companies.toml`. Rejected companies go to a gitignored `config/rejected_companies.toml` with a short reason, so they are not proposed again.
 5.4 [1 pt] Add a read-only MCP tool `get_company_list()` so the skill and fit review can see which companies are already tracked or rejected.
 5.5 [2 pts] Run discovery twice, one month apart, and record in `docs/decisions.md` how many proposals were approved and why others were rejected. Adjust categories and the skill prompt from what is learned.
 
