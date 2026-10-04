@@ -19,6 +19,8 @@
 
 # Private working context for Claude Code
 CLAUDE.local.md
+# Scheduled-run log (names the owner's target companies)
+/logs/
 
 # --- Python and tooling ---
 __pycache__/
