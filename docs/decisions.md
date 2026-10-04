@@ -2,6 +2,16 @@
 
 Owner decisions that change the plan, the rules, or how the tool behaves, newest first. Each entry says what was decided, why, and what it affects. Filter rule changes during Phase 2 tuning are logged here too (issue 2.8). Because this file is public, rule changes are described in general terms; the specific terms and places live only in the gitignored `config/filters.toml` (design principle 5).
 
+## 2026-10-04: Discovery drops employers whose ads name no industry term
+
+**Decision:** Discovery drops any employer whose ad titles, snippets, and Adzuna categories contain none of the owner's industry terms. The setting is `require_industry_term`, on by default and in the owner's config. The number dropped is still reported on every run, so the cut is visible.
+
+**Why:** The first real run (138 calls) found 1,366 new employers, and 1,060 of them showed no industry term at all. The owner judged that a relevant ad names its industry within its first 500 characters, so those employers are clutter rather than missed opportunities. This supersedes the original "rank, don't drop" design in issue 2b.2.
+
+**Tradeoff:** An employer in a target industry whose snippets never name it will be missed. That's accepted for a much shorter list. Turning the setting off restores the old behavior, with those employers ranked last.
+
+**Affects:** `src/jobwatcher/discovery.py`, `config/discovery.example.toml`, and the owner's private `config/discovery.toml`.
+
 ## 2026-10-04: Discovery feed added (Phase 2b), using Adzuna for discovery only
 
 **Decision:** Add a weekly discovery feed after issue 2.7, before the tuning week. The plan is now v13. It searches the Adzuna API with the owner's role and industry terms, groups results by employer, detects each new employer's job board, and lists candidates in a discovery report for the owner to approve or reject. Phase 5 (Claude-assisted discovery) reuses its board detection and approval step.

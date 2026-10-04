@@ -81,6 +81,9 @@ class DiscoveryConfig:
     industry_terms: Terms
     max_days_old: int
     max_calls: int
+    # Owner decision (2026-10-04): drop employers whose ads name none of the
+    # industry terms. See docs/decisions.md.
+    require_industry_term: bool = True
 
     @property
     def calls(self) -> int:
@@ -99,7 +102,13 @@ def load_discovery_config(path: Path) -> DiscoveryConfig:
     except tomllib.TOMLDecodeError as exc:
         raise ConfigError(f"{path} is not valid TOML: {exc}") from exc
 
-    unknown = set(data) - {"search", "industry_terms", "max_days_old", "max_calls"}
+    unknown = set(data) - {
+        "search",
+        "industry_terms",
+        "max_days_old",
+        "max_calls",
+        "require_industry_term",
+    }
     if unknown:
         raise ConfigError(f"{path}: unknown key(s) {sorted(unknown)}")
 
@@ -119,7 +128,23 @@ def load_discovery_config(path: Path) -> DiscoveryConfig:
     max_days_old = _whole_number(data.get("max_days_old", 7), "max_days_old", path, 1, 365)
     max_calls = _whole_number(data.get("max_calls", DEFAULT_MAX_CALLS), "max_calls", path, 1, 250)
 
-    config = DiscoveryConfig(blocks, Terms(t.strip() for t in industry), max_days_old, max_calls)
+    require_industry = data.get("require_industry_term", True)
+    if not isinstance(require_industry, bool):
+        raise ConfigError(f"{path}: 'require_industry_term' must be true or false")
+    if require_industry and not industry:
+        # Requiring a term from an empty list would silently drop everyone.
+        raise ConfigError(
+            f"{path}: 'require_industry_term' is on but 'industry_terms' is empty, "
+            "so every employer would be dropped"
+        )
+
+    config = DiscoveryConfig(
+        blocks,
+        Terms(t.strip() for t in industry),
+        max_days_old,
+        max_calls,
+        require_industry,
+    )
     if config.calls > config.max_calls:
         detail = " + ".join(
             f"{len(b.countries)} countries x {len(b.role_terms)} terms" for b in blocks
@@ -297,38 +322,55 @@ class Candidate:
 class DiscoveryResult:
     candidates: list[Candidate]
     skipped_known: int  # employers found but already tracked or rejected
+    dropped_no_industry: int  # employers with no industry term anywhere (if required)
     calls: int
     errors: list[str]  # "us / 'field engineer': HTTP 429"
 
 
+@dataclass
+class Grouped:
+    candidates: list[Candidate]
+    skipped_known: int
+    dropped_no_industry: int
+
+
 def group_candidates(
-    jobs: Iterable[AdzunaJob], known: set[str], industry_terms: Terms
-) -> tuple[list[Candidate], int]:
+    jobs: Iterable[AdzunaJob],
+    known: set[str],
+    industry_terms: Terms,
+    require_industry_term: bool = False,
+) -> Grouped:
     """Group jobs by employer, drop known employers, and rank the rest.
 
     Ranking: most distinct industry terms found first, then most matching
-    jobs, then name. Employers with no industry terms are kept (a 500-
-    character snippet can't prove an industry is absent), just ranked lower.
+    jobs, then name. With require_industry_term (the owner's choice), an
+    employer whose titles, snippets, and categories contain no industry term
+    at all is dropped and counted, on the view that a relevant ad names its
+    industry in the first 500 characters. Without it, such employers are kept
+    and ranked last.
     """
     groups: dict[str, list[AdzunaJob]] = {}
     for job in jobs:
         groups.setdefault(employer_key(job.employer), []).append(job)
 
     candidates: list[Candidate] = []
-    skipped = 0
+    skipped = dropped = 0
     for key, group in groups.items():
         if key in known:
             skipped += 1
             continue
-        # The most common spelling of the name stands for the employer.
-        name = Counter(j.employer for j in group).most_common(1)[0][0]
         texts = [t for j in group for t in (j.title, j.snippet, j.category)]
         hits = industry_terms.hits(*texts)
+        if require_industry_term and not hits:
+            dropped += 1
+            continue
+        # The most common spelling of the name stands for the employer.
+        name = Counter(j.employer for j in group).most_common(1)[0][0]
         unique_jobs = list({(j.title, j.location, j.country): j for j in group}.values())
         candidates.append(Candidate(name, key, unique_jobs, hits))
 
     candidates.sort(key=lambda c: (-len(c.industry_hits), -len(c.jobs), c.name.lower()))
-    return candidates, skipped
+    return Grouped(candidates, skipped, dropped)
 
 
 def discover(
@@ -345,8 +387,14 @@ def discover(
                     jobs.extend(client.search(country, role_term, config.max_days_old))
                 except AdzunaError as exc:
                     errors.append(f"{country} / '{role_term}': {exc}")
-    candidates, skipped = group_candidates(jobs, known, config.industry_terms)
-    return DiscoveryResult(candidates, skipped, client.calls, errors)
+    grouped = group_candidates(jobs, known, config.industry_terms, config.require_industry_term)
+    return DiscoveryResult(
+        grouped.candidates,
+        grouped.skipped_known,
+        grouped.dropped_no_industry,
+        client.calls,
+        errors,
+    )
 
 
 def known_employer_names(companies_path: Path, rejected_path: Path) -> list[str]:

@@ -179,8 +179,8 @@ def run_discover(
 
     print(
         f"{len(result.candidates)} new employers; {result.skipped_known} already known "
-        f"(on the company list or rejected). {result.calls} calls, "
-        f"{len(result.errors)} failed.",
+        f"(on the company list or rejected); {result.dropped_no_industry} dropped with no "
+        f"industry term in any ad. {result.calls} calls, {len(result.errors)} failed.",
         file=out,
     )
     for error in result.errors:

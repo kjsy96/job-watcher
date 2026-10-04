@@ -13,9 +13,14 @@
 max_days_old = 7      # only ads posted in the last week (discovery runs weekly)
 max_calls = 200       # refuse a config that would need more calls than this
 
-# Found in a candidate's titles, snippets, or Adzuna category: used to rank
-# candidates, never to drop them (a 500-character snippet can't prove absence).
+# Looked for in each employer's ad titles, snippets, and Adzuna categories, and
+# used to rank employers (most distinct terms first).
 industry_terms = ["manufacturing", "mining", "energy"]
+
+# true: drop employers whose ads name none of the industry terms, on the view
+# that a relevant ad names its industry in its first 500 characters. The number
+# dropped is still reported. false: keep them, ranked last.
+require_industry_term = true
 
 [[search]]
 countries = ["us", "ca"]

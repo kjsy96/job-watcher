@@ -20,7 +20,9 @@ from jobwatcher.discovery import (
     AdzunaClient,
     AdzunaError,
     AdzunaJob,
+    Candidate,
     DiscoveryConfig,
+    Grouped,
     SearchBlock,
     discover,
     employer_key,
@@ -51,6 +53,10 @@ def job(employer: str, title: str = "Field Engineer", **kw: str) -> AdzunaJob:
     return AdzunaJob(employer=employer, title=title, **fields)
 
 
+def unpack(grouped: Grouped) -> tuple[list[Candidate], int]:
+    return grouped.candidates, grouped.skipped_known
+
+
 # --- the fixture is safe to commit ---
 
 
@@ -70,7 +76,7 @@ def write(tmp_path: Path, text: str) -> Path:
 
 
 GOOD = """
-industry_terms = ["mining"]
+industry_terms = ["engineering"]
 [[search]]
 countries = ["us", "ca"]
 role_terms = ["field engineer", "commissioning"]
@@ -103,7 +109,7 @@ def test_over_budget_config_is_refused_with_the_arithmetic(tmp_path: Path) -> No
         (('["us", "ca"]', '["us", "se"]'), r"doesn't cover \['se'\]"),
         (('["us", "ca"]', "[]"), "non-empty list of country codes"),
         (('["field engineer", "commissioning"]', "[]"), "non-empty list of text terms"),
-        (('["mining"]', '["mining", ""]'), "non-empty text terms"),
+        (('["engineering"]', '["engineering", ""]'), "non-empty text terms"),
         (("industry_terms", "industy_terms"), r"unknown key\(s\) \['industy_terms'\]"),
         (('role_terms = ["field', 'roles = ["field'), r"unknown key\(s\) \['roles'\]"),
     ],
@@ -115,6 +121,25 @@ def test_invalid_config_names_the_problem(
     assert old in GOOD
     with pytest.raises(ConfigError, match=message):
         load_discovery_config(write(tmp_path, GOOD.replace(old, new)))
+
+
+def test_require_industry_term_defaults_on_and_can_be_turned_off(tmp_path: Path) -> None:
+    assert load_discovery_config(write(tmp_path, GOOD)).require_industry_term is True
+    off = "require_industry_term = false\n" + GOOD
+    assert load_discovery_config(write(tmp_path, off)).require_industry_term is False
+
+
+def test_requiring_a_term_from_an_empty_list_is_refused(tmp_path: Path) -> None:
+    text = GOOD.replace('industry_terms = ["engineering"]', "industry_terms = []")
+    with pytest.raises(ConfigError, match="every employer would be dropped"):
+        load_discovery_config(write(tmp_path, text))
+    # Fine when the requirement is off.
+    load_discovery_config(write(tmp_path, "require_industry_term = false\n" + text))
+
+
+def test_require_industry_term_must_be_true_or_false(tmp_path: Path) -> None:
+    with pytest.raises(ConfigError, match="true or false"):
+        load_discovery_config(write(tmp_path, 'require_industry_term = "yes"\n' + GOOD))
 
 
 @pytest.mark.parametrize("line", ["max_days_old = 0", "max_days_old = 400", "max_calls = 251"])
@@ -193,7 +218,7 @@ def test_different_employers_stay_different() -> None:
 
 
 def test_groups_the_real_response_by_employer() -> None:
-    candidates, skipped = group_candidates(parse_results(payload(), "us"), set(), Terms([]))
+    candidates, skipped = unpack(group_candidates(parse_results(payload(), "us"), set(), Terms([])))
     assert skipped == 0
     by_name = {c.name: c for c in candidates}
     assert set(by_name) == {"Amazon Data Services, Inc.", "Syska Hennessy Group"}
@@ -207,7 +232,7 @@ def test_groups_the_real_response_by_employer() -> None:
 
 def test_known_employers_are_skipped_whatever_the_spelling() -> None:
     known = {employer_key("Amazon Data Services")}  # no ", Inc." in the config
-    candidates, skipped = group_candidates(parse_results(payload(), "us"), known, Terms([]))
+    candidates, skipped = unpack(group_candidates(parse_results(payload(), "us"), known, Terms([])))
     assert [c.name for c in candidates] == ["Syska Hennessy Group"]
     assert skipped == 1
 
@@ -220,7 +245,7 @@ def test_ranked_by_industry_terms_then_ad_count() -> None:
         job("Mine Tech", snippet="Commissioning at open-pit mining sites."),
         job("Plant Ops", category="Manufacturing Jobs"),
     ]
-    candidates, _ = group_candidates(jobs, set(), Terms(["mining", "manufacturing"]))
+    candidates, _ = unpack(group_candidates(jobs, set(), Terms(["mining", "manufacturing"])))
     assert [(c.name, c.industry_hits) for c in candidates] == [
         ("Mine Tech", ["mining"]),
         ("Plant Ops", ["manufacturing"]),
@@ -230,15 +255,50 @@ def test_ranked_by_industry_terms_then_ad_count() -> None:
 
 def test_duplicate_ads_from_several_searches_count_once() -> None:
     same = job("Acme", "Field Engineer")
-    candidates, _ = group_candidates([same, same, same], set(), Terms([]))
+    candidates, _ = unpack(group_candidates([same, same, same], set(), Terms([])))
     assert len(candidates[0].jobs) == 1
 
 
 def test_countries_are_listed() -> None:
-    candidates, _ = group_candidates(
-        [job("Acme", country="us"), job("Acme", country="de")], set(), Terms([])
+    candidates, _ = unpack(
+        group_candidates([job("Acme", country="us"), job("Acme", country="de")], set(), Terms([]))
     )
     assert candidates[0].countries == ["de", "us"]
+
+
+def test_required_industry_term_drops_and_counts_the_rest() -> None:
+    jobs = [
+        job("Mine Tech", snippet="Commissioning at open-pit mining sites."),
+        job("Payroll Co", "Implementation Consultant", snippet="Payroll software rollouts."),
+        job("Bank Co", "Implementation Lead", category="Accounting & Finance Jobs"),
+    ]
+    grouped = group_candidates(jobs, set(), Terms(["mining"]), require_industry_term=True)
+    assert [c.name for c in grouped.candidates] == ["Mine Tech"]
+    assert grouped.dropped_no_industry == 2
+
+    kept = group_candidates(jobs, set(), Terms(["mining"]), require_industry_term=False)
+    assert [c.name for c in kept.candidates] == ["Mine Tech", "Bank Co", "Payroll Co"]
+    assert kept.dropped_no_industry == 0
+
+
+def test_industry_term_in_any_ad_keeps_the_employer() -> None:
+    # One relevant ad is enough, even if the employer's other ads aren't.
+    jobs = [
+        job("Acme", "Implementation Lead", snippet="Payroll rollouts."),
+        job("Acme", "Field Engineer", snippet="Commissioning at mining sites."),
+    ]
+    grouped = group_candidates(jobs, set(), Terms(["mining"]), require_industry_term=True)
+    assert [c.name for c in grouped.candidates] == ["Acme"]
+
+
+def test_known_employers_are_counted_as_known_not_dropped() -> None:
+    grouped = group_candidates(
+        [job("Acme", snippet="no industry here")],
+        {employer_key("Acme")},
+        Terms(["mining"]),
+        require_industry_term=True,
+    )
+    assert (grouped.skipped_known, grouped.dropped_no_industry) == (1, 0)
 
 
 # --- the Adzuna client ---
@@ -311,7 +371,9 @@ def test_discover_collects_failures_and_keeps_going() -> None:
             return httpx.Response(503)
         return httpx.Response(200, json=payload())
 
-    config = DiscoveryConfig((SearchBlock(("us", "ca"), ("a", "b")),), Terms([]), 7, 200)
+    config = DiscoveryConfig(
+        (SearchBlock(("us", "ca"), ("a", "b")),), Terms([]), 7, 200, require_industry_term=False
+    )
     result = discover(config, make_client(handler), known_names=["Syska Hennessy Group"])
 
     assert result.calls == 4
@@ -419,9 +481,9 @@ def test_discover_lists_new_employers(adzuna: FakeAdzuna, tmp_path: Path) -> Non
 
     assert code == EXIT_OK
     assert len(adzuna.requests) == 4  # 2 countries x 2 role terms
-    assert "1 new employers; 1 already known" in out  # Syska is on the company list
+    assert "1 new employers; 1 already known (on the company list or rejected); 0 dropped" in out
     # The fake answers both countries with the same 3 ads; per country they count separately.
-    assert "- Amazon Data Services, Inc. [ca/us] 6 ad(s); industry: no industry terms found" in out
+    assert "- Amazon Data Services, Inc. [ca/us] 6 ad(s); industry: engineering" in out
     assert "Source: The Adzuna API" in out
 
 
