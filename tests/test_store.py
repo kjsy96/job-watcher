@@ -291,3 +291,64 @@ def test_unrelated_database_is_refused(tmp_path: Path) -> None:
 def test_replace_keeps_posting_identity() -> None:
     # Sanity check for the helper used above: changing content keeps the ID.
     assert replace(posting("1"), title="X").id == posting("1").id
+
+
+# --- new postings and filter results (issue 2.5) ---
+
+
+def test_first_seen_in_returns_only_that_runs_new_postings(store: Store) -> None:
+    store.record_board(ACME, [posting("1"), posting("2")], DAY1)
+    store.record_board(ACME, [posting("1"), posting("2"), posting("3")], DAY2)
+
+    assert [s.posting.source_job_id for s in store.first_seen_in(DAY1)] == ["1", "2"]
+    assert [s.posting.source_job_id for s in store.first_seen_in(DAY2)] == ["3"]
+    assert store.first_seen_in(DAY3) == []
+
+
+def test_first_seen_in_matches_the_same_moment_in_any_time_zone(store: Store) -> None:
+    from datetime import timezone
+
+    local = DAY1.astimezone(timezone(timedelta(hours=11)))
+    store.record_board(ACME, [posting("1")], local)
+    assert len(store.first_seen_in(DAY1)) == 1  # same instant, UTC
+
+
+def test_reopened_posting_is_not_new(store: Store) -> None:
+    store.record_board(ACME, [posting("1")], DAY1)
+    store.record_board(ACME, [], DAY2)
+    store.record_board(ACME, [posting("1")], DAY3)
+    assert store.first_seen_in(DAY3) == []
+
+
+def test_filter_results_round_trip(store: Store) -> None:
+    store.record_board(ACME, [posting("1"), posting("2")], DAY1)
+    assert store.filter_result("greenhouse:acme:1") == (None, [])
+
+    # Non-English text in a reason must survive the JSON round trip.
+    reasons = [
+        "title matches no role term",
+        "location: 'Montr\N{LATIN SMALL LETTER E WITH ACUTE}al'",
+    ]
+    store.set_filter_results(
+        [("greenhouse:acme:1", "excluded", reasons), ("greenhouse:acme:2", "match", [])]
+    )
+
+    assert store.filter_result("greenhouse:acme:1") == ("excluded", reasons)
+    assert store.filter_result("greenhouse:acme:2") == ("match", [])
+
+
+def test_filter_result_rejects_unknown_outcome(store: Store) -> None:
+    store.record_board(ACME, [posting("1")], DAY1)
+    with pytest.raises(sqlite3.IntegrityError):
+        store.set_filter_results([("greenhouse:acme:1", "maybe", [])])
+
+
+def test_filter_results_for_unknown_posting_write_nothing(store: Store) -> None:
+    store.record_board(ACME, [posting("1")], DAY1)
+    with pytest.raises(ValueError, match="no stored posting"):
+        store.set_filter_results(
+            [("greenhouse:acme:1", "match", []), ("greenhouse:acme:404", "match", [])]
+        )
+    assert store.filter_result("greenhouse:acme:1") == (None, [])  # rolled back
+    with pytest.raises(ValueError, match="no stored posting"):
+        store.filter_result("greenhouse:acme:404")
