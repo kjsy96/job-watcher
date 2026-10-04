@@ -1,0 +1,172 @@
+{
+  "mean": 118550.33,
+  "__CLASS__": "Adzuna::API::Response::JobSearchResults",
+  "results": [
+    {
+      "company": {
+        "display_name": "Amazon Data Services, Inc.",
+        "__CLASS__": "Adzuna::API::Response::Company"
+      },
+      "category": {
+        "label": "Engineering Jobs",
+        "tag": "engineering-jobs",
+        "__CLASS__": "Adzuna::API::Response::Category"
+      },
+      "__CLASS__": "Adzuna::API::Response::Job",
+      "latitude": 38.886431,
+      "salary_max": 135924.61,
+      "description": "Are you experienced in Critical Infrastructure Commissioning and looking for a fast paced environment to work in? As a Data Center Commissioning Engineer (CxE), you will be part of highly creative, efficient team tasked with tackling fascinating and challenging problems building and supporting the operations of Amazon owned data centers. The Amazon Commissioning team (ACx) understands, evaluates, defines and manages the expectations of construction quality in accordance to engineering designs t…",
+      "salary_is_predicted": "1",
+      "longitude": -91.454379,
+      "created": "2026-09-24T13:53:51Z",
+      "location": {
+        "__CLASS__": "Adzuna::API::Response::Location",
+        "display_name": "Big Springs, Montgomery County",
+        "area": [
+          "US",
+          "Missouri",
+          "Montgomery County",
+          "Big Springs"
+        ]
+      },
+      "title": "Commissioning Engineer, AMER-Central ACx",
+      "redirect_url": "https://www.adzuna.com/land/ad/5897199504?se=QMbjhKa_8RGdRLcUnFY4TA&utm_medium=api&utm_source=APP_ID_REDACTED&v=C68C93609E2B6AEADB105D29417D0E691D93016B",
+      "salary_min": 135924.61,
+      "id": "5897199504",
+      "adref": "eyJhbGciOiJIUzI1NiJ9.eyJzIjoiUU1iamhLYV84UkdkUkxjVW5GWTRUQSIsImkiOiI1ODk3MTk5NTA0In0.jLagjsQ0MExbmUeACq5sWAbIIMCZWMjJ0nwY7ZwEsIA"
+    },
+    {
+      "__CLASS__": "Adzuna::API::Response::Job",
+      "latitude": 32.760168,
+      "company": {
+        "__CLASS__": "Adzuna::API::Response::Company",
+        "display_name": "Syska Hennessy Group"
+      },
+      "category": {
+        "__CLASS__": "Adzuna::API::Response::Category",
+        "tag": "engineering-jobs",
+        "label": "Engineering Jobs"
+      },
+      "created": "2026-10-02T01:42:15Z",
+      "location": {
+        "__CLASS__": "Adzuna::API::Response::Location",
+        "display_name": "Highland Park, Dallas",
+        "area": [
+          "US",
+          "Texas",
+          "Dallas",
+          "Highland Park"
+        ]
+      },
+      "description": "Watch your commissioning expertise come to life in landmark projects around the world when you partner with Syska Hennessy Group! As a global leader in consulting, engineering, and commissioning services, we specialize in highly technical buildings and the systems that bring them to life. We are currently seeking a performance-driven, motivated C ommissioning Engineer III - Senior Commissioning Engineer. This role will be based out of Dallas, TX. You will demonstrate your Commissioning skills a…",
+      "salary_max": 120350.09,
+      "salary_is_predicted": "1",
+      "longitude": -96.765058,
+      "title": "Commissioning Engineer III - Senior Commissioning Engineer",
+      "id": "5907449795",
+      "adref": "eyJhbGciOiJIUzI1NiJ9.eyJpIjoiNTkwNzQ0OTc5NSIsInMiOiJRTWJqaEthXzhSR2RSTGNVbkZZNFRBIn0.wVbLjTAdb8RLr3q9Iu3n5He4ud_Yqv_qdWO-N5w32Cs",
+      "redirect_url": "https://www.adzuna.com/land/ad/5907449795?se=QMbjhKa_8RGdRLcUnFY4TA&utm_medium=api&utm_source=APP_ID_REDACTED&v=06DC677E7FADCFFFF2E12AE8720B74F0D11F146C",
+      "salary_min": 120350.09
+    },
+    {
+      "latitude": 33.119288,
+      "__CLASS__": "Adzuna::API::Response::Job",
+      "category": {
+        "__CLASS__": "Adzuna::API::Response::Category",
+        "label": "Engineering Jobs",
+        "tag": "engineering-jobs"
+      },
+      "company": {
+        "__CLASS__": "Adzuna::API::Response::Company",
+        "display_name": "Syska Hennessy Group"
+      },
+      "location": {
+        "display_name": "Lake Dallas, Denton County",
+        "__CLASS__": "Adzuna::API::Response::Location",
+        "area": [
+          "US",
+          "Texas",
+          "Denton County",
+          "Lake Dallas"
+        ]
+      },
+      "created": "2026-10-02T01:13:11Z",
+      "longitude": -97.025564,
+      "salary_is_predicted": "1",
+      "salary_max": 108027.11,
+      "description": "Watch your commissioning expertise come to life in landmark projects around the world when you partner with Syska Hennessy Group! As a global leader in consulting, engineering, and commissioning services, we specialize in highly technical buildings and the systems that bring them to life. We are currently seeking a performance-driven, motivated C ommissioning Engineer III - Senior Commissioning Engineer. This role will be based out of Dallas, TX. You will demonstrate your Commissioning skills a…",
+      "title": "Commissioning Engineer III - Senior Commissioning Engineer",
+      "adref": "eyJhbGciOiJIUzI1NiJ9.eyJpIjoiNTkwNzM2NzE0MSIsInMiOiJRTWJqaEthXzhSR2RSTGNVbkZZNFRBIn0.WFZFy1lbR5JrF1AsqWcpzexLaLnelypB36TNGHNrzIk",
+      "id": "5907367141",
+      "salary_min": 108027.11,
+      "redirect_url": "https://www.adzuna.com/land/ad/5907367141?se=QMbjhKa_8RGdRLcUnFY4TA&utm_medium=api&utm_source=APP_ID_REDACTED&v=60BE8970B7E5E4303D133986270050B085F595B2"
+    },
+    {
+      "redirect_url": "https://www.adzuna.com/land/ad/5859508985?se=QMbjhKa_8RGdRLcUnFY4TA&utm_medium=api&utm_source=APP_ID_REDACTED&v=4A2ABDE5E44D26AEE1AC127920379548E8ECAA30",
+      "salary_min": 112824.82,
+      "id": "5859508985",
+      "adref": "eyJhbGciOiJIUzI1NiJ9.eyJpIjoiNTg1OTUwODk4NSIsInMiOiJRTWJqaEthXzhSR2RSTGNVbkZZNFRBIn0.QVrPRoa8z9fH3N1stu9QSTxCZGl-JPYTSeKqU0rINGQ",
+      "title": "Retro Commissioning Engineer Lead, AMER-Central ACx",
+      "description": "AWS Infrastructure Services owns the design, planning, delivery, and operation of all AWS global infrastructure. In other words, we’re the people who keep the cloud running. We support all AWS data centers and all of the servers, storage, networking, power, and cooling equipment that ensure our customers have continual access to the innovation they rely on. We work on the most challenging problems, with thousands of variables impacting the supply chain — and we’re looking for talented people wh…",
+      "salary_max": 112824.82,
+      "salary_is_predicted": "1",
+      "longitude": -82.965488,
+      "location": {
+        "area": [
+          "US",
+          "Ohio",
+          "Franklin County",
+          "Minerva Park"
+        ],
+        "display_name": "Minerva Park, Franklin County",
+        "__CLASS__": "Adzuna::API::Response::Location"
+      },
+      "created": "2026-08-28T04:33:27Z",
+      "company": {
+        "display_name": "Amazon Data Services, Inc.",
+        "__CLASS__": "Adzuna::API::Response::Company"
+      },
+      "category": {
+        "__CLASS__": "Adzuna::API::Response::Category",
+        "label": "Engineering Jobs",
+        "tag": "engineering-jobs"
+      },
+      "__CLASS__": "Adzuna::API::Response::Job",
+      "latitude": 40.041105
+    },
+    {
+      "company": {
+        "display_name": "Amazon Data Services, Inc.",
+        "__CLASS__": "Adzuna::API::Response::Company"
+      },
+      "category": {
+        "label": "Engineering Jobs",
+        "tag": "engineering-jobs",
+        "__CLASS__": "Adzuna::API::Response::Category"
+      },
+      "__CLASS__": "Adzuna::API::Response::Job",
+      "latitude": 45.9147,
+      "salary_is_predicted": "1",
+      "salary_max": 101778.85,
+      "description": "AWS Infrastructure Services owns the design, planning, delivery, and operation of all AWS global infrastructure. In other words, we’re the people who keep the cloud running. We support all AWS data centers and all of the servers, storage, networking, power, and cooling equipment that ensure our customers have continual access to the innovation they rely on. We work on the most challenging problems, with thousands of variables impacting the supply chain — and we’re looking for talented people wh…",
+      "longitude": -119.31552,
+      "location": {
+        "__CLASS__": "Adzuna::API::Response::Location",
+        "display_name": "Mcnary, Umatilla County",
+        "area": [
+          "US",
+          "Oregon",
+          "Umatilla County",
+          "Mcnary"
+        ]
+      },
+      "created": "2026-09-02T11:47:45Z",
+      "title": "Commissioning Engineer, AMER-West ACx",
+      "redirect_url": "https://www.adzuna.com/land/ad/5867211179?se=QMbjhKa_8RGdRLcUnFY4TA&utm_medium=api&utm_source=APP_ID_REDACTED&v=803F8C107C777820F128E46BE6BB36AEF566D02F",
+      "salary_min": 101778.85,
+      "id": "5867211179",
+      "adref": "eyJhbGciOiJIUzI1NiJ9.eyJpIjoiNTg2NzIxMTE3OSIsInMiOiJRTWJqaEthXzhSR2RSTGNVbkZZNFRBIn0.bv9GMLAF0TmoxqToYXKL3jRgo6JxLY1LAWSBI0MMFnw"
+    }
+  ],
+  "count": 10920
+}
