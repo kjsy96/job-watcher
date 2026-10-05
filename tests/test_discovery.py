@@ -474,6 +474,11 @@ class Setup:
         self.env = tmp_path / ".env"
         self.env.write_text(f"ADZUNA_APP_ID={FAKE_ID}\nADZUNA_APP_KEY={FAKE_KEY}\n")
         self.db = tmp_path / "data" / "jobwatcher.db"
+        self.reports = tmp_path / "reports"
+
+    def report(self) -> str:
+        [path] = sorted(self.reports.glob("discovery-*.md"))[-1:]
+        return path.read_text(encoding="utf-8")
 
     def run(self) -> tuple[int, str]:
         out = io.StringIO()
@@ -485,6 +490,7 @@ class Setup:
             out,
             pause=lambda _: None,
             db_path=self.db,
+            reports_dir=self.reports,
         )
         return code, out.getvalue()
 
@@ -525,7 +531,8 @@ def adzuna(monkeypatch: pytest.MonkeyPatch) -> FakeAdzuna:
 
 
 def test_discover_lists_new_employers(adzuna: FakeAdzuna, tmp_path: Path) -> None:
-    code, out = Setup(tmp_path).run()
+    setup = Setup(tmp_path)
+    code, out = setup.run()
 
     assert code == EXIT_OK
     assert len(adzuna.requests) == 4  # 2 countries x 2 role terms
@@ -533,9 +540,13 @@ def test_discover_lists_new_employers(adzuna: FakeAdzuna, tmp_path: Path) -> Non
         "1 new employers; 1 already known (on the company list or rejected); "
         "0 on the ignore list; 0 dropped" in out
     )
-    # The fake answers both countries with the same 3 ads; per country they count separately.
-    assert "- Amazon Data Services, Inc. [ca/us] 6 ad(s); industry: engineering" in out
+    assert "0 ready to approve. Report: " in out
     assert "Source: The Adzuna API" in out
+    report = setup.report()
+    # The fake answers both countries with the same 3 ads; per country they count separately.
+    assert "**Amazon Data Services, Inc.**" in report and "6 ad(s)" in report
+    assert "industry: engineering" in report
+    assert "## No readable board found" in report  # the fake has no boards
 
 
 def test_failed_calls_exit_1_and_never_show_credentials(adzuna: FakeAdzuna, tmp_path: Path) -> None:
@@ -576,10 +587,11 @@ def test_discover_shows_each_employers_board(adzuna: FakeAdzuna, tmp_path: Path)
 
     assert code == EXIT_OK
     assert "Job boards: 1 looked up this run (1 requests), 0 remembered" in out
-    assert (
-        "    board: confirmed: greenhouse:amazondataservices "
-        "(board has 'Commissioning Engineer, AMER-West ACx')" in out
-    )
+    assert "1 ready to approve." in out
+    ready = setup.report().split("## Ready to approve")[1].split("## Check first")[0]
+    assert "**Amazon Data Services, Inc.**" in ready
+    assert "board: `greenhouse:amazondataservices`, board has 'Commissioning Engineer" in ready
+    assert 'approve: `python -m jobwatcher approve "Amazon Data Services, Inc."`' in ready
 
     # Second run: remembered, so no board requests at all.
     adzuna.board_requests.clear()
