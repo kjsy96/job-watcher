@@ -13,17 +13,17 @@ Exit codes:
   1  the run finished, but at least one company failed (see the summary;
      for run, the report is still written and lists the failure first)
   2  nothing ran: bad arguments, config, or database
-  3  run only: offline (every company failed with no HTTP response); nothing
-     was recorded and today is not counted, so the next attempt retries
+  3  run and discover only: offline (no network response); nothing was
+     recorded and the day (or week) is not counted, so the next attempt retries
 
-run counts at most one run per local day. Later attempts the same day exit
-0 without fetching, unless --force is given.
+run counts at most one run per local day, and discover at most one per
+rolling week. Later attempts exit 0 without fetching, unless --force is given.
 """
 
 import argparse
 import sys
 from collections.abc import Callable, Sequence
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import TextIO
 
@@ -134,6 +134,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path("reports"),
         help="folder for the discovery report (default: reports)",
     )
+    discover_cmd.add_argument(
+        "--force",
+        action="store_true",
+        help="run even if discovery already ran in the last 7 days",
+    )
 
     approve_cmd = commands.add_parser(
         "approve",
@@ -205,6 +210,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             sys.stdout,
             db_path=args.db,
             reports_dir=args.reports,
+            force=args.force,
         )
     if args.command == "approve":
         return run_approve(
@@ -231,16 +237,53 @@ def run_discover(
     pause: Callable[[float], None] | None = None,
     db_path: Path = Path("data/jobwatcher.db"),
     reports_dir: Path = Path("reports"),
+    force: bool = False,
 ) -> int:
-    # Config, credentials, and the call budget are all checked before any request.
+    # Config, the weekly check, credentials, and the call budget are all
+    # checked before any request.
     try:
         config = discovery.load_discovery_config(discovery_path)
         known = discovery.known_employer_names(companies_path, rejected_path)
-        creds = env.require(("ADZUNA_APP_ID", "ADZUNA_APP_KEY"), env_path)
     except ConfigError as exc:
         print(f"Config error: {exc}", file=out)
         return EXIT_UNUSABLE
 
+    # Local time, as for run: the week is counted in the owner's calendar days.
+    run_at = datetime.now(UTC).astimezone()
+    try:
+        with Store.open(db_path) as store:
+            last = store.last_discovery_run()
+            if not force and last and not discovery.discovery_due(last[0], run_at.date()):
+                due = last[0] + timedelta(days=discovery.DISCOVERY_INTERVAL_DAYS)
+                print(
+                    f"Discovery already ran on {last[0]:%Y-%m-%d}; report: {last[1]}. "
+                    f"Next run is due on {due:%Y-%m-%d}. Use --force to run again.",
+                    file=out,
+                )
+                return EXIT_OK
+            try:
+                creds = env.require(("ADZUNA_APP_ID", "ADZUNA_APP_KEY"), env_path)
+            except ConfigError as exc:
+                print(f"Config error: {exc}", file=out)
+                return EXIT_UNUSABLE
+            return _discover_and_report(
+                config, known, creds, store, run_at, reports_dir, out, pause
+            )
+    except StoreError as exc:
+        print(f"Database error: {exc}", file=out)
+        return EXIT_UNUSABLE
+
+
+def _discover_and_report(
+    config: discovery.DiscoveryConfig,
+    known: list[str],
+    creds: dict[str, str],
+    store: Store,
+    run_at: datetime,
+    reports_dir: Path,
+    out: TextIO,
+    pause: Callable[[float], None] | None,
+) -> int:
     minutes = max(1, round(config.calls * discovery.SECONDS_BETWEEN_CALLS / 60))
     print(
         f"Searching Adzuna: {config.calls} calls (budget {config.max_calls}), "
@@ -249,23 +292,27 @@ def run_discover(
         file=out,
     )
     sleep = {"pause": pause} if pause is not None else {}
-    try:
-        with Store.open(db_path) as store, fetch.make_client() as http:
-            client = discovery.AdzunaClient(
-                http, creds["ADZUNA_APP_ID"], creds["ADZUNA_APP_KEY"], **sleep
+    with fetch.make_client() as http:
+        client = discovery.AdzunaClient(
+            http, creds["ADZUNA_APP_ID"], creds["ADZUNA_APP_KEY"], **sleep
+        )
+        result = discovery.discover(config, client, known)
+        if result.offline:
+            print(
+                f"Offline, will retry: the first Adzuna call got no network response "
+                f"({result.errors[0]}). Nothing was recorded and this week's discovery "
+                "is still due.",
+                file=out,
             )
-            result = discovery.discover(config, client, known)
-            boards = detection.detect_boards(
-                result.candidates,
-                store,
-                http,
-                datetime.now(UTC),
-                config.detect_top,
-                **sleep,
-            )
-    except StoreError as exc:
-        print(f"Database error: {exc}", file=out)
-        return EXIT_UNUSABLE
+            return EXIT_OFFLINE
+        boards = detection.detect_boards(
+            result.candidates,
+            store,
+            http,
+            datetime.now(UTC),
+            config.detect_top,
+            **sleep,
+        )
 
     print(
         f"{len(result.candidates)} new employers; {result.skipped_known} already known "
@@ -283,15 +330,17 @@ def run_discover(
     for error in [*result.errors, *boards.errors]:
         print(f"  ERROR {error}", file=out)
 
-    run_at = datetime.now(UTC).astimezone()
     path = daily.next_report_path(reports_dir, run_at.date(), prefix="discovery-")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(render_discovery_report(run_at, config, result, boards), encoding="utf-8")
+    # Any failed call is reported and makes the exit non-zero, like a failed
+    # board. The run still counts for the week, so a bad key or a rate limit
+    # isn't retried every hour; the report lists the failures first.
+    failed = result.errors or boards.errors
+    store.record_discovery_run(run_at, "partial" if failed else "ok", str(path))
     ready = sum(1 for c in result.candidates if c.board and c.board.status == "confirmed")
     print(f"{ready} ready to approve. Report: {path}", file=out)
     print("Source: The Adzuna API (https://www.adzuna.co.uk/)", file=out)
-    # Any failed call is reported and makes the exit non-zero, like a failed board.
-    failed = result.errors or boards.errors
     return EXIT_OK if not failed else EXIT_COMPANY_FAILED
 
 

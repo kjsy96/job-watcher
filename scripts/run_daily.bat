@@ -5,6 +5,9 @@ rem sure only one real run happens per day, and that being offline doesn't use i
 rem Every attempt is appended to logs\run.log. The exit code is run's:
 rem   0 ok or already ran today, 1 some companies failed, 2 config/database problem,
 rem   3 offline (today not counted, so the next attempt retries).
+rem After run, it also starts "jobwatcher discover" if config\discovery.toml exists.
+rem discover counts at most one run per week the same way, so most attempts skip it
+rem at once. Its output and exit code go to the log; the task's exit code stays run's.
 
 setlocal
 rem Work from the repo folder (this script lives in its "scripts" subfolder), so the
@@ -23,4 +26,13 @@ rem scheduled run.
 "%UV%" run --frozen python -m jobwatcher run >> logs\run.log 2>&1
 set "CODE=%ERRORLEVEL%"
 echo exit code %CODE% >> logs\run.log
+
+rem Skip discovery when run found the laptop offline (exit 3): it would only fail.
+if "%CODE%"=="3" goto done
+if not exist config\discovery.toml goto done
+echo ----- discover >> logs\run.log
+"%UV%" run --frozen python -m jobwatcher discover >> logs\run.log 2>&1
+echo discover exit code %ERRORLEVEL% >> logs\run.log
+
+:done
 exit /b %CODE%

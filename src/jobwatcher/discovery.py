@@ -16,6 +16,7 @@ import tomllib
 from collections import Counter
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
+from datetime import date, timedelta
 from pathlib import Path
 
 import httpx
@@ -31,6 +32,7 @@ API_BASE = "https://api.adzuna.com/v1/api/jobs"
 SUPPORTED_COUNTRIES = frozenset(["us", "ca", "at", "be", "de", "es", "fr", "it", "nl", "pl", "ch"])
 MAX_RESULTS_PER_PAGE = 50  # larger values are silently capped by Adzuna
 SECONDS_BETWEEN_CALLS = 2.6  # Adzuna allows 25 calls per minute
+DISCOVERY_INTERVAL_DAYS = 7  # discover runs at most once per rolling week
 DEFAULT_MAX_CALLS = 200  # Adzuna allows 250 calls per day
 
 # Legal-form words dropped when comparing employer names, so that
@@ -222,7 +224,15 @@ class AdzunaJob:
 
 
 class AdzunaError(Exception):
-    """A search call failed. The message never contains the URL or the key."""
+    """A search call failed. The message never contains the URL or the key.
+
+    network is True when no HTTP response arrived at all (DNS failure,
+    refused connection, timeout), as for SourceError.
+    """
+
+    def __init__(self, reason: str, *, network: bool = False) -> None:
+        self.network = network
+        super().__init__(reason)
 
 
 class AdzunaClient:
@@ -259,7 +269,7 @@ class AdzunaClient:
             response = self._client.get(f"{API_BASE}/{country}/search/1", params=params)
         except httpx.HTTPError as exc:
             # str(exc) can include the request URL, which contains the key.
-            raise AdzunaError(f"request failed: {type(exc).__name__}") from None
+            raise AdzunaError(f"request failed: {type(exc).__name__}", network=True) from None
         if response.status_code != 200:
             raise AdzunaError(f"HTTP {response.status_code}")
         try:
@@ -344,6 +354,9 @@ class DiscoveryResult:
     ignored: int  # employers on the ignore list (recruiters, job sites)
     calls: int
     errors: list[str]  # "us / 'field engineer': HTTP 429"
+    # The first call got no network response, so the run stopped there. It
+    # isn't counted, and the next attempt retries.
+    offline: bool = False
 
 
 @dataclass
@@ -410,6 +423,10 @@ def discover(
                 try:
                     jobs.extend(client.search(country, role_term, config.max_days_old))
                 except AdzunaError as exc:
+                    if exc.network and client.calls == 1:
+                        # Most likely offline. Stop rather than spend every
+                        # remaining call (and its pause) failing the same way.
+                        return DiscoveryResult([], 0, 0, 0, client.calls, [str(exc)], offline=True)
                     errors.append(f"{country} / '{role_term}': {exc}")
     grouped = group_candidates(
         jobs,
@@ -426,6 +443,15 @@ def discover(
         client.calls,
         errors,
     )
+
+
+def discovery_due(last_run: date | None, today: date) -> bool:
+    """True when no counted discovery run happened in the last week.
+
+    A rolling week from the last run's local date, so a run on Sunday isn't
+    followed by another on Monday the way a calendar week would allow.
+    """
+    return last_run is None or today - last_run >= timedelta(days=DISCOVERY_INTERVAL_DAYS)
 
 
 def known_employer_names(companies_path: Path, rejected_path: Path) -> list[str]:
