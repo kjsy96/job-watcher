@@ -84,6 +84,9 @@ class DiscoveryConfig:
     # Owner decision (2026-10-04): drop employers whose ads name none of the
     # industry terms. See docs/decisions.md.
     require_industry_term: bool = True
+    # Normalized names (employer_key) of employers never to propose, such as
+    # recruiters and job sites that Adzuna lists as the employer.
+    ignore_employers: frozenset[str] = frozenset()
 
     @property
     def calls(self) -> int:
@@ -108,6 +111,7 @@ def load_discovery_config(path: Path) -> DiscoveryConfig:
         "max_days_old",
         "max_calls",
         "require_industry_term",
+        "ignore_employers",
     }
     if unknown:
         raise ConfigError(f"{path}: unknown key(s) {sorted(unknown)}")
@@ -138,12 +142,17 @@ def load_discovery_config(path: Path) -> DiscoveryConfig:
             "so every employer would be dropped"
         )
 
+    ignore = data.get("ignore_employers", [])
+    if not isinstance(ignore, list) or not all(isinstance(n, str) and n.strip() for n in ignore):
+        raise ConfigError(f"{path}: 'ignore_employers' must be a list of non-empty names")
+
     config = DiscoveryConfig(
         blocks,
         Terms(t.strip() for t in industry),
         max_days_old,
         max_calls,
         require_industry,
+        frozenset(employer_key(n) for n in ignore if isinstance(n, str)),
     )
     if config.calls > config.max_calls:
         detail = " + ".join(
@@ -323,6 +332,7 @@ class DiscoveryResult:
     candidates: list[Candidate]
     skipped_known: int  # employers found but already tracked or rejected
     dropped_no_industry: int  # employers with no industry term anywhere (if required)
+    ignored: int  # employers on the ignore list (recruiters, job sites)
     calls: int
     errors: list[str]  # "us / 'field engineer': HTTP 429"
 
@@ -332,6 +342,7 @@ class Grouped:
     candidates: list[Candidate]
     skipped_known: int
     dropped_no_industry: int
+    ignored: int = 0
 
 
 def group_candidates(
@@ -339,6 +350,7 @@ def group_candidates(
     known: set[str],
     industry_terms: Terms,
     require_industry_term: bool = False,
+    ignored: frozenset[str] = frozenset(),
 ) -> Grouped:
     """Group jobs by employer, drop known employers, and rank the rest.
 
@@ -354,8 +366,11 @@ def group_candidates(
         groups.setdefault(employer_key(job.employer), []).append(job)
 
     candidates: list[Candidate] = []
-    skipped = dropped = 0
+    skipped = dropped = ignored_count = 0
     for key, group in groups.items():
+        if key in ignored:
+            ignored_count += 1
+            continue
         if key in known:
             skipped += 1
             continue
@@ -370,7 +385,7 @@ def group_candidates(
         candidates.append(Candidate(name, key, unique_jobs, hits))
 
     candidates.sort(key=lambda c: (-len(c.industry_hits), -len(c.jobs), c.name.lower()))
-    return Grouped(candidates, skipped, dropped)
+    return Grouped(candidates, skipped, dropped, ignored_count)
 
 
 def discover(
@@ -387,11 +402,18 @@ def discover(
                     jobs.extend(client.search(country, role_term, config.max_days_old))
                 except AdzunaError as exc:
                     errors.append(f"{country} / '{role_term}': {exc}")
-    grouped = group_candidates(jobs, known, config.industry_terms, config.require_industry_term)
+    grouped = group_candidates(
+        jobs,
+        known,
+        config.industry_terms,
+        config.require_industry_term,
+        config.ignore_employers,
+    )
     return DiscoveryResult(
         grouped.candidates,
         grouped.skipped_known,
         grouped.dropped_no_industry,
+        grouped.ignored,
         client.calls,
         errors,
     )

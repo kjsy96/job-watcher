@@ -22,6 +22,11 @@ industry_terms = ["manufacturing", "mining", "energy"]
 # dropped is still reported. false: keep them, ranked last.
 require_industry_term = true
 
+# Employers never to propose: recruiters, staffing agencies, and job sites that
+# Adzuna lists as the employer. Matched by name, ignoring case, punctuation, and
+# legal suffixes ("Example Staffing LLC" also matches "example staffing").
+ignore_employers = ["Example Staffing Agency", "Example Job Board"]
+
 [[search]]
 countries = ["us", "ca"]
 role_terms = ["implementation engineer", "field engineer", "commissioning"]

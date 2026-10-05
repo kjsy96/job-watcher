@@ -301,6 +301,38 @@ def test_known_employers_are_counted_as_known_not_dropped() -> None:
     assert (grouped.skipped_known, grouped.dropped_no_industry) == (1, 0)
 
 
+def test_ignored_employers_are_skipped_and_counted_separately() -> None:
+    jobs = [
+        job("Umanist Staffing LLC", snippet="Field engineer for a mining client."),
+        job("Robert Half", snippet="Mining commissioning contract."),
+        job("Mine Tech", snippet="Commissioning at mining sites."),
+        job("Acme", snippet="Mining site work."),
+    ]
+    grouped = group_candidates(
+        jobs,
+        {employer_key("Acme")},
+        Terms(["mining"]),
+        require_industry_term=True,
+        # Configured without the legal suffix and in a different case.
+        ignored=frozenset({employer_key("umanist staffing"), employer_key("ROBERT HALF")}),
+    )
+    assert [c.name for c in grouped.candidates] == ["Mine Tech"]
+    assert (grouped.ignored, grouped.skipped_known, grouped.dropped_no_industry) == (2, 1, 0)
+
+
+def test_ignore_list_is_loaded_as_normalized_names(tmp_path: Path) -> None:
+    text = 'ignore_employers = ["Robert Half Inc.", "Job-Room"]\n' + GOOD
+    config = load_discovery_config(write(tmp_path, text))
+    assert config.ignore_employers == {employer_key("robert half"), employer_key("JOB ROOM")}
+    assert load_discovery_config(write(tmp_path, GOOD)).ignore_employers == frozenset()
+
+
+@pytest.mark.parametrize("value", ['"Robert Half"', '["Robert Half", ""]', "[3]"])
+def test_ignore_list_must_be_a_list_of_names(tmp_path: Path, value: str) -> None:
+    with pytest.raises(ConfigError, match="list of non-empty names"):
+        load_discovery_config(write(tmp_path, f"ignore_employers = {value}\n" + GOOD))
+
+
 # --- the Adzuna client ---
 
 
@@ -481,7 +513,10 @@ def test_discover_lists_new_employers(adzuna: FakeAdzuna, tmp_path: Path) -> Non
 
     assert code == EXIT_OK
     assert len(adzuna.requests) == 4  # 2 countries x 2 role terms
-    assert "1 new employers; 1 already known (on the company list or rejected); 0 dropped" in out
+    assert (
+        "1 new employers; 1 already known (on the company list or rejected); "
+        "0 on the ignore list; 0 dropped" in out
+    )
     # The fake answers both countries with the same 3 ads; per country they count separately.
     assert "- Amazon Data Services, Inc. [ca/us] 6 ad(s); industry: engineering" in out
     assert "Source: The Adzuna API" in out
