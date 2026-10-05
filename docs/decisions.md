@@ -2,6 +2,16 @@
 
 Owner decisions that change the plan, the rules, or how the tool behaves, newest first. Each entry says what was decided, why, and what it affects. Filter rule changes during Phase 2 tuning are logged here too (issue 2.8). Because this file is public, rule changes are described in general terms; the specific terms and places live only in the gitignored `config/filters.toml` (design principle 5).
 
+## 2026-10-06: Fourth location tier removed
+
+**Decision:** The owner removed the fourth, lowest-priority location tier added on 2026-10-04. Its place names and region labels went back on the non-US exclusion list, and the discovery searches for those countries were dropped.
+
+**Why:** Roles there wouldn't be pursued, so listing them cost review time and cluttered the report.
+
+**Result on the same 136 open postings:** 7 postings moved from Flagged to Excluded (1 Match / 9 Flagged / 126 Excluded after the change). Discovery now uses 66 Adzuna calls per run instead of 138.
+
+**Affects:** `config/filters.toml` and `config/discovery.toml` only (private). No code.
+
 ## 2026-10-04: Discovery drops employers whose ads name no industry term
 
 **Decision:** Discovery drops any employer whose ad titles, snippets, and Adzuna categories contain none of the owner's industry terms. The setting is `require_industry_term`, on by default and in the owner's config. The number dropped is still reported on every run, so the cut is visible.
@@ -36,7 +46,7 @@ Owner decisions that change the plan, the rules, or how the tool behaves, newest
 **Decision:** After reviewing how the rule engine sorted the first 136 real postings, the owner:
 - added several title terms for roles that were being missed
 - removed two title terms made redundant by singular/plural matching
-- added a fourth, lowest-priority location tier for remote and on-site jobs in a group of countries, with sponsorship required. Some place names and region labels moved from the non-US exclusion list into that tier.
+- added a fourth, lowest-priority location tier for remote and on-site jobs in a group of countries, with sponsorship required. Some place names and region labels moved from the non-US exclusion list into that tier. (Removed again on 2026-10-06; see above.)
 
 **Why:** The first pass excluded relevant titles over wording differences, and the owner wants a wider net abroad at the lowest priority rather than an outright exclusion.
 
