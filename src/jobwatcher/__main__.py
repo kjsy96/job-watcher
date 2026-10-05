@@ -4,6 +4,7 @@ Commands:
   fetch     fetch every company's board once and record new and closed postings
   run       fetch, filter the new postings, and write the day's report
   refilter  re-run the current rules over every open stored posting (no network)
+  discover  search Adzuna for employers not already on the list (discovery only)
 
 Exit codes:
   0  every company was fetched and recorded (refilter: it finished)
@@ -19,12 +20,12 @@ run counts at most one run per local day. Later attempts the same day exit
 
 import argparse
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import TextIO
 
-from jobwatcher import __version__, fetch
+from jobwatcher import __version__, discovery, env, fetch
 from jobwatcher import run as daily
 from jobwatcher.config import ConfigError, load_companies
 from jobwatcher.fetch import CompanyResult, Outcome
@@ -87,6 +88,36 @@ def build_parser() -> argparse.ArgumentParser:
             default=Path("reports"),
             help="folder for reports (default: reports)",
         )
+
+    discover_cmd = commands.add_parser(
+        "discover",
+        help="search Adzuna for employers hiring for your kinds of roles that aren't on the "
+        "company list yet",
+    )
+    discover_cmd.add_argument(
+        "--discovery",
+        type=Path,
+        default=Path("config/discovery.toml"),
+        help="discovery search terms (default: config/discovery.toml)",
+    )
+    discover_cmd.add_argument(
+        "--config",
+        type=Path,
+        default=Path("config/companies.toml"),
+        help="company list; these employers are skipped (default: config/companies.toml)",
+    )
+    discover_cmd.add_argument(
+        "--rejected",
+        type=Path,
+        default=Path("config/rejected_companies.toml"),
+        help="rejected employers, also skipped (default: config/rejected_companies.toml)",
+    )
+    discover_cmd.add_argument(
+        "--env",
+        type=Path,
+        default=Path(".env"),
+        help="file holding ADZUNA_APP_ID and ADZUNA_APP_KEY (default: .env)",
+    )
     return parser
 
 
@@ -107,8 +138,65 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
     if args.command == "refilter":
         return run_refilter(args.config, args.filters, args.db, args.reports, sys.stdout)
+    if args.command == "discover":
+        return run_discover(args.discovery, args.config, args.rejected, args.env, sys.stdout)
     parser.print_help()
     return EXIT_OK
+
+
+def run_discover(
+    discovery_path: Path,
+    companies_path: Path,
+    rejected_path: Path,
+    env_path: Path,
+    out: TextIO,
+    pause: Callable[[float], None] | None = None,
+) -> int:
+    # Config, credentials, and the call budget are all checked before any request.
+    try:
+        config = discovery.load_discovery_config(discovery_path)
+        known = discovery.known_employer_names(companies_path, rejected_path)
+        creds = env.require(("ADZUNA_APP_ID", "ADZUNA_APP_KEY"), env_path)
+    except ConfigError as exc:
+        print(f"Config error: {exc}", file=out)
+        return EXIT_UNUSABLE
+
+    minutes = max(1, round(config.calls * discovery.SECONDS_BETWEEN_CALLS / 60))
+    print(
+        f"Searching Adzuna: {config.calls} calls (budget {config.max_calls}), "
+        f"ads from the last {config.max_days_old} days. Calls are spaced out, so this "
+        f"takes about {minutes} minute{'s' if minutes != 1 else ''}.",
+        file=out,
+    )
+    with fetch.make_client() as http:
+        client = discovery.AdzunaClient(
+            http,
+            creds["ADZUNA_APP_ID"],
+            creds["ADZUNA_APP_KEY"],
+            **({"pause": pause} if pause is not None else {}),
+        )
+        result = discovery.discover(config, client, known)
+
+    print(
+        f"{len(result.candidates)} new employers; {result.skipped_known} already known "
+        f"(on the company list or rejected); {result.ignored} on the ignore list; "
+        f"{result.dropped_no_industry} dropped with no industry term in any ad. "
+        f"{result.calls} calls, {len(result.errors)} failed.",
+        file=out,
+    )
+    for error in result.errors:
+        print(f"  ERROR {error}", file=out)
+    for c in result.candidates:
+        industry = ", ".join(c.industry_hits) if c.industry_hits else "no industry terms found"
+        print(
+            f"- {c.name} [{'/'.join(c.countries)}] {len(c.jobs)} ad(s); industry: {industry}",
+            file=out,
+        )
+        for title in c.titles[:3]:
+            print(f"    {title}", file=out)
+    print("Source: The Adzuna API (https://www.adzuna.co.uk/)", file=out)
+    # Any failed call is reported and makes the exit non-zero, like a failed board.
+    return EXIT_OK if not result.errors else EXIT_COMPANY_FAILED
 
 
 def run_refilter(

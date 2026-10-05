@@ -1,0 +1,36 @@
+# Example discovery config. Copy to config/discovery.toml (gitignored) and edit.
+#
+# Discovery searches Adzuna for employers hiring for your kinds of roles and
+# lists the ones not already in companies.toml (or rejected). It never decides
+# whether a posting fits: approved employers are read in full from their own
+# job boards and filtered normally. See docs/sources.md ("Adzuna").
+#
+# Each [[search]] block searches every role term in every listed country, one
+# Adzuna call each, matching job titles only. Calls add up: Adzuna allows 250
+# per day, so a config needing more than max_calls is refused before any request.
+# Supported countries: us ca at be de es fr it nl pl ch.
+
+max_days_old = 7      # only ads posted in the last week (discovery runs weekly)
+max_calls = 200       # refuse a config that would need more calls than this
+
+# Looked for in each employer's ad titles, snippets, and Adzuna categories, and
+# used to rank employers (most distinct terms first).
+industry_terms = ["manufacturing", "mining", "energy"]
+
+# true: drop employers whose ads name none of the industry terms, on the view
+# that a relevant ad names its industry in its first 500 characters. The number
+# dropped is still reported. false: keep them, ranked last.
+require_industry_term = true
+
+# Employers never to propose: recruiters, staffing agencies, and job sites that
+# Adzuna lists as the employer. Matched by name, ignoring case, punctuation, and
+# legal suffixes ("Example Staffing LLC" also matches "example staffing").
+ignore_employers = ["Example Staffing Agency", "Example Job Board"]
+
+[[search]]
+countries = ["us", "ca"]
+role_terms = ["implementation engineer", "field engineer", "commissioning"]
+
+[[search]]
+countries = ["de", "nl"]
+role_terms = ["field engineer"]
