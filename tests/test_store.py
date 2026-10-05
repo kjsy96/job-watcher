@@ -382,7 +382,7 @@ def test_version_1_database_is_migrated_with_postings_intact(tmp_path: Path) -> 
     _version_1_database(db)
 
     with Store.open(db) as store:
-        assert store._conn.execute("PRAGMA user_version").fetchone()[0] == SCHEMA_VERSION == 2
+        assert store._conn.execute("PRAGMA user_version").fetchone()[0] == SCHEMA_VERSION
         stored = store.get("greenhouse:acme:1")
         assert stored is not None and stored.posting.title == "Old Posting"
         store.record_run(DAY1, "ok", "reports/2026-10-01.md")
@@ -430,3 +430,56 @@ def test_run_date_is_the_local_date_given(store: Store) -> None:
 def test_run_outcome_must_be_known(store: Store) -> None:
     with pytest.raises(sqlite3.IntegrityError):
         store.record_run(DAY1, "skipped", "x.md")
+
+
+# --- schema version 3: board checks (issue 2b.3) ---
+
+
+def test_version_2_database_is_migrated_to_3_with_runs_intact(tmp_path: Path) -> None:
+    db = tmp_path / "jobwatcher.db"
+    _version_1_database(db)
+    conn = sqlite3.connect(db)
+    from jobwatcher.store import _MIGRATIONS
+
+    for statement in _MIGRATIONS[2].split(";"):
+        if statement.strip():
+            conn.execute(statement)
+    conn.execute(
+        "INSERT INTO runs VALUES ('2026-10-01T07:00:00.000000+00:00', '2026-10-01', 'ok', 'r.md')"
+    )
+    conn.execute("PRAGMA user_version = 2")
+    conn.commit()
+    conn.close()
+
+    with Store.open(db) as store:
+        assert store._conn.execute("PRAGMA user_version").fetchone()[0] == 3
+        assert store.run_on(DAY1.date()) == ("ok", "r.md")
+        assert store.get("greenhouse:acme:1") is not None
+        assert store.board_check("acme") is None
+
+
+def test_board_check_round_trip_and_replace(store: Store) -> None:
+    from jobwatcher.store import BoardCheck
+
+    first = BoardCheck(
+        "acme", "Acme Inc.", "possible", SourceName.LEVER, "acme", "no title match", DAY1
+    )
+    store.record_board_check(first)
+    assert store.board_check("acme") == first
+
+    confirmed = BoardCheck(
+        "acme", "Acme Inc.", "confirmed", SourceName.GREENHOUSE, "acme", "'Field Engineer'", DAY2
+    )
+    store.record_board_check(confirmed)
+    assert store.board_check("acme") == confirmed  # replaced, not duplicated
+
+    store.record_board_check(BoardCheck("nope", "Nope", "not_found", None, None, "tried 3", DAY1))
+    stored = store.board_check("nope")
+    assert stored is not None and stored.source is None and stored.board is None
+
+
+def test_board_check_status_must_be_known(store: Store) -> None:
+    from jobwatcher.store import BoardCheck
+
+    with pytest.raises(sqlite3.IntegrityError):
+        store.record_board_check(BoardCheck("x", "X", "error", None, None, "boom", DAY1))

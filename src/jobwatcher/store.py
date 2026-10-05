@@ -17,7 +17,7 @@ from typing import Self
 
 from jobwatcher.models import Company, Posting, PostingStatus, Remote, SourceName
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 # STRICT makes SQLite enforce column types (by default it stores whatever it
 # is given). The CHECK constraints keep enum columns to their known values,
@@ -63,6 +63,20 @@ CREATE TABLE runs (
 
 CREATE INDEX runs_by_date ON runs (local_date);
 """,
+    # Version 3 (issue 2b.3): job board detection results for discovered
+    # employers, so no employer's board is looked up twice. Only definite
+    # answers are stored; a failed request is retried on a later run.
+    3: """
+CREATE TABLE board_checks (
+    employer_key  TEXT PRIMARY KEY,
+    employer_name TEXT NOT NULL,
+    checked_at    TEXT NOT NULL,
+    status        TEXT NOT NULL CHECK (status IN ('confirmed', 'possible', 'not_found')),
+    source        TEXT CHECK (source IN ('greenhouse', 'lever', 'ashby')),
+    board         TEXT,
+    detail        TEXT NOT NULL
+) STRICT;
+""",
 }
 
 
@@ -84,6 +98,24 @@ class BoardResult:
     reopened: int
     closed: int
     previously_open: int
+
+
+@dataclass(frozen=True, slots=True)
+class BoardCheck:
+    """Where a discovered employer's job board was found, if anywhere (issue 2b.3).
+
+    status: 'confirmed' (a board job title matches one of the employer's ads),
+    'possible' (a board exists under the guessed name, but no title matches),
+    or 'not_found' (no board under the guessed name on any platform).
+    """
+
+    employer_key: str
+    employer_name: str
+    status: str
+    source: SourceName | None
+    board: str | None
+    detail: str
+    checked_at: datetime
 
 
 @dataclass(frozen=True, slots=True)
@@ -182,6 +214,40 @@ class Store:
             (f"{local_date:%Y-%m-%d}",),
         ).fetchone()
         return None if row is None else (str(row["outcome"]), str(row["report_path"]))
+
+    def board_check(self, employer_key: str) -> BoardCheck | None:
+        """The stored job board detection for an employer, if it was checked."""
+        row = self._conn.execute(
+            "SELECT * FROM board_checks WHERE employer_key = ?", (employer_key,)
+        ).fetchone()
+        if row is None:
+            return None
+        return BoardCheck(
+            employer_key=str(row["employer_key"]),
+            employer_name=str(row["employer_name"]),
+            status=str(row["status"]),
+            source=SourceName(row["source"]) if row["source"] else None,
+            board=str(row["board"]) if row["board"] else None,
+            detail=str(row["detail"]),
+            checked_at=_from_text(str(row["checked_at"])),
+        )
+
+    def record_board_check(self, check: BoardCheck) -> None:
+        """Store a definite detection result. Rechecking replaces the old one."""
+        with self._conn:
+            self._conn.execute(
+                "INSERT OR REPLACE INTO board_checks (employer_key, employer_name, checked_at, "
+                "status, source, board, detail) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (
+                    check.employer_key,
+                    check.employer_name,
+                    _to_text(check.checked_at),
+                    check.status,
+                    check.source,
+                    check.board,
+                    check.detail,
+                ),
+            )
 
     def record_board(
         self, company: Company, postings: list[Posting], seen_at: datetime
