@@ -84,7 +84,7 @@ def render_refilter_report(
     lines: list[str] = [
         f"# Job Watcher refilter: {run_at:%Y-%m-%d}",
         "",
-        f"Run at {_clock(run_at)}",
+        f"Run at {clock(run_at)}",
         "",
         f"- **Re-filtered:** {len(items)} open stored postings with the current rules. "
         "No boards were fetched.",
@@ -138,7 +138,7 @@ def escape(text: str) -> str:
     return _MARKDOWN_SPECIAL.sub(lambda m: "\\" + m.group(0), " ".join(text.split()))
 
 
-def _clock(moment: datetime) -> str:
+def clock(moment: datetime) -> str:
     """'2026-10-04 07:30 (UTC+00:00)'. A numeric offset, because Windows
     time zone names are long and vary by machine."""
     offset = moment.strftime("%z")  # "+1100", or "" for a naive datetime
@@ -160,7 +160,7 @@ def _summary(
     recorded = [c.board for c in companies if c.board is not None]
     fetched = sum(c.fetched or 0 for c in companies if c.board is not None)
     return [
-        f"Run at {_clock(run_at)}",
+        f"Run at {clock(run_at)}",
         "",
         f"- **Companies:** {len(companies)} checked: {status[FetchOutcome.OK]} ok, "
         f"{status[FetchOutcome.WARNING]} warning, {status[FetchOutcome.FAILED]} failed",

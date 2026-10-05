@@ -125,6 +125,41 @@ A company is only recorded when its board was read successfully. Anything else i
 
 One company's problem never stops the others.
 
+## Discovering new companies
+
+The daily run only watches companies already in `config/companies.toml`. Discovery finds employers you haven't heard of yet, using the [Adzuna API](https://developer.adzuna.com) only to learn who is hiring for your kinds of roles. Adzuna's short descriptions are never used to judge postings: once you approve an employer, its full postings come from its own job board and go through the normal filters.
+
+**Setup:**
+1. Get a free Adzuna API key.
+2. Copy `.env.example` to `.env` and fill in `ADZUNA_APP_ID` and `ADZUNA_APP_KEY`. `.env` is gitignored.
+3. Copy `config/discovery.example.toml` to `config/discovery.toml` and set your role terms, industry terms, and countries. The example's comments explain each setting.
+
+**Run it** (about weekly; it takes a few minutes, because calls are spaced to respect Adzuna's limits):
+
+```powershell
+uv run python -m jobwatcher discover
+```
+
+It writes `reports\discovery-YYYY-MM-DD.md`, grouped by what to do next:
+
+- **Ready to approve:** the employer's Greenhouse, Lever, or Ashby board was found, and one of its job titles matches the employer's ads.
+- **Check first:** a board exists under the guessed name, but no titles match. It may belong to a different organization.
+- **No readable board found:** the employer may use Workday or similar, so track it by hand, or reject it.
+- **Not checked yet:** board lookups are limited per run (`detect_top`). Later runs continue down the list, and no employer is looked up twice.
+
+**Then decide.** Nothing is ever added automatically:
+
+```powershell
+uv run python -m jobwatcher approve "Employer Name"
+```
+
+```powershell
+uv run python -m jobwatcher reject "Employer Name" --reason "recruiter, not an employer"
+```
+
+- **`approve`** adds the employer to `config/companies.toml`, keeping your comments, and the next daily run starts watching it. If you found the board yourself, add `--source lever --board theirboard`. `--sector` is optional, and left empty by default, because a sector counts toward every one of that company's posting scores.
+- **`reject`** adds the employer to the gitignored `config/rejected_companies.toml` with your reason, so discovery never proposes it again.
+
 ## Scheduled daily run (Windows Task Scheduler)
 
 Task Scheduler starts `scripts\run_daily.bat` at logon and every hour. That's safe because `run` counts only one real run per day, and being offline doesn't use it up. The task never wakes the laptop, and it runs with no window.

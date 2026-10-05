@@ -5,6 +5,8 @@ Commands:
   run       fetch, filter the new postings, and write the day's report
   refilter  re-run the current rules over every open stored posting (no network)
   discover  search Adzuna for employers not already on the list (discovery only)
+  approve   add a discovered employer to the company list
+  reject    never propose a discovered employer again
 
 Exit codes:
   0  every company was fetched and recorded (refilter: it finished)
@@ -25,11 +27,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TextIO
 
-from jobwatcher import __version__, detection, discovery, env, fetch
+from jobwatcher import __version__, approvals, detection, discovery, env, fetch
 from jobwatcher import run as daily
 from jobwatcher.config import ConfigError, load_companies
+from jobwatcher.discovery_report import render_discovery_report
 from jobwatcher.fetch import CompanyResult, Outcome
 from jobwatcher.filter_config import load_filter_rules
+from jobwatcher.models import SourceName
 from jobwatcher.store import Store, StoreError
 
 EXIT_OK = 0
@@ -124,6 +128,54 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path("data/jobwatcher.db"),
         help="SQLite database, which remembers job board lookups (default: data/jobwatcher.db)",
     )
+    discover_cmd.add_argument(
+        "--reports",
+        type=Path,
+        default=Path("reports"),
+        help="folder for the discovery report (default: reports)",
+    )
+
+    approve_cmd = commands.add_parser(
+        "approve",
+        help="add a discovered employer to the company list, using its found job board",
+    )
+    approve_cmd.add_argument("name", help="employer name, as shown in the discovery report")
+    approve_cmd.add_argument(
+        "--sector", default=None, help="optional sector label for reports (default: none)"
+    )
+    approve_cmd.add_argument(
+        "--source",
+        choices=[s.value for s in SourceName],
+        default=None,
+        help="the employer's platform, if you found its board yourself (use with --board)",
+    )
+    approve_cmd.add_argument(
+        "--board", default=None, help="the board name from its job board URL (with --source)"
+    )
+    reject_cmd = commands.add_parser(
+        "reject", help="never propose a discovered employer again, with a reason"
+    )
+    reject_cmd.add_argument("name", help="employer name, as shown in the discovery report")
+    reject_cmd.add_argument("--reason", required=True, help="why it isn't a fit")
+    for cmd in (approve_cmd, reject_cmd):
+        cmd.add_argument(
+            "--config",
+            type=Path,
+            default=Path("config/companies.toml"),
+            help="company list (default: config/companies.toml)",
+        )
+    approve_cmd.add_argument(
+        "--db",
+        type=Path,
+        default=Path("data/jobwatcher.db"),
+        help="SQLite database holding the job board lookups (default: data/jobwatcher.db)",
+    )
+    reject_cmd.add_argument(
+        "--rejected",
+        type=Path,
+        default=Path("config/rejected_companies.toml"),
+        help="rejected employers (default: config/rejected_companies.toml)",
+    )
     return parser
 
 
@@ -146,8 +198,26 @@ def main(argv: Sequence[str] | None = None) -> int:
         return run_refilter(args.config, args.filters, args.db, args.reports, sys.stdout)
     if args.command == "discover":
         return run_discover(
-            args.discovery, args.config, args.rejected, args.env, sys.stdout, db_path=args.db
+            args.discovery,
+            args.config,
+            args.rejected,
+            args.env,
+            sys.stdout,
+            db_path=args.db,
+            reports_dir=args.reports,
         )
+    if args.command == "approve":
+        return run_approve(
+            args.name,
+            args.config,
+            args.db,
+            sys.stdout,
+            sector=args.sector,
+            source=args.source,
+            board=args.board,
+        )
+    if args.command == "reject":
+        return run_reject(args.name, args.reason, args.rejected, args.config, sys.stdout)
     parser.print_help()
     return EXIT_OK
 
@@ -160,6 +230,7 @@ def run_discover(
     out: TextIO,
     pause: Callable[[float], None] | None = None,
     db_path: Path = Path("data/jobwatcher.db"),
+    reports_dir: Path = Path("reports"),
 ) -> int:
     # Config, credentials, and the call budget are all checked before any request.
     try:
@@ -211,30 +282,64 @@ def run_discover(
     )
     for error in [*result.errors, *boards.errors]:
         print(f"  ERROR {error}", file=out)
-    for c in result.candidates:
-        industry = ", ".join(c.industry_hits) if c.industry_hits else "no industry terms found"
-        print(
-            f"- {c.name} [{'/'.join(c.countries)}] {len(c.jobs)} ad(s); industry: {industry}",
-            file=out,
-        )
-        print(f"    board: {_board_text(c)}", file=out)
-        for title in c.titles[:3]:
-            print(f"    {title}", file=out)
+
+    run_at = datetime.now(UTC).astimezone()
+    path = daily.next_report_path(reports_dir, run_at.date(), prefix="discovery-")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(render_discovery_report(run_at, config, result, boards), encoding="utf-8")
+    ready = sum(1 for c in result.candidates if c.board and c.board.status == "confirmed")
+    print(f"{ready} ready to approve. Report: {path}", file=out)
     print("Source: The Adzuna API (https://www.adzuna.co.uk/)", file=out)
     # Any failed call is reported and makes the exit non-zero, like a failed board.
     failed = result.errors or boards.errors
     return EXIT_OK if not failed else EXIT_COMPANY_FAILED
 
 
-def _board_text(candidate: discovery.Candidate) -> str:
-    if candidate.board_error is not None:
-        return f"lookup failed ({candidate.board_error}); retried next run"
-    check = candidate.board
-    if check is None:
-        return "not checked yet"
-    if check.status == "not_found":
-        return f"not found: {check.detail}"
-    return f"{check.status}: {check.source}:{check.board} ({check.detail})"
+def run_approve(
+    name: str,
+    companies_path: Path,
+    db_path: Path,
+    out: TextIO,
+    sector: str | None = None,
+    source: str | None = None,
+    board: str | None = None,
+) -> int:
+    try:
+        with Store.open(db_path) as store:
+            approval = approvals.approve(
+                name,
+                companies_path,
+                store,
+                datetime.now(UTC).astimezone().date(),
+                sector=sector,
+                source=SourceName(source) if source else None,
+                board=board,
+            )
+    except (ConfigError, StoreError) as exc:
+        print(f"Not approved: {exc}", file=out)
+        return EXIT_UNUSABLE
+    print(
+        f"Approved {approval.name}: added {approval.source}:{approval.board} to "
+        f"{companies_path}. The next daily run starts watching it.",
+        file=out,
+    )
+    if approval.warning:
+        print(f"Note: {approval.warning}.", file=out)
+    return EXIT_OK
+
+
+def run_reject(
+    name: str, reason: str, rejected_path: Path, companies_path: Path, out: TextIO
+) -> int:
+    try:
+        approvals.reject(
+            name, reason, rejected_path, companies_path, datetime.now(UTC).astimezone().date()
+        )
+    except ConfigError as exc:
+        print(f"Not rejected: {exc}", file=out)
+        return EXIT_UNUSABLE
+    print(f"Rejected {name}: added to {rejected_path}; discovery won't propose it again.", file=out)
+    return EXIT_OK
 
 
 def run_refilter(
