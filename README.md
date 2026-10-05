@@ -12,7 +12,8 @@ A personal tool that checks a list of target companies' public job boards once a
   - **Possible**: the title fits, but no industry or work overlap was found. Listed briefly, since generic titles can still be worth a glance.
   - **Excluded**: counted, with reasons available
 - Reports source failures at the top of every report. A broken job board never looks like "no new jobs."
-- Later phases add a read-only MCP server so Claude can query the database and help review fit, and a monthly company discovery step that proposes new companies for approval
+- A weekly discovery step proposes employers you haven't heard of yet, for you to approve or reject
+- Later phases add a read-only MCP server so Claude can query the database and help review fit
 
 ## What it doesn't do
 
@@ -25,7 +26,7 @@ A personal tool that checks a list of target companies' public job boards once a
 
 ## Status
 
-Phase 1 (fetch and store) is complete as of v0.2.0. Phase 2 is in progress: **`run` works**. It fetches every board, filters the new postings, and writes a daily Markdown report. Still to come in Phase 2 are the once-per-day logic, the Windows Task Scheduler setup, and a week of rule tuning. See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the full phase plan.
+Phase 1 (fetch and store) is complete as of v0.2.0. Phase 2 and the discovery feed (Phase 2b) are working: the scheduled task writes one filtered report per day, and discovery runs weekly. What's left before v0.3.0 is a week of rule tuning and a review of whether a UI would help. See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the full phase plan.
 
 | Phase | What | Release |
 |---|---|---|
@@ -116,7 +117,7 @@ It prints one row per company (fetched, new, reopened, and closed counts, or the
 | 0 | Every company was fetched and recorded, or (`run`) today already had a counted run |
 | 1 | The run finished, but at least one company failed or has a warning (see its row) |
 | 2 | Nothing ran: bad arguments, an invalid config, or an unusable database |
-| 3 | `run` only: offline. Nothing was recorded and today isn't counted, so the next attempt retries. |
+| 3 | `run` and `discover` only: offline. Nothing was recorded and the day (or week) isn't counted, so the next attempt retries. |
 
 A company is only recorded when its board was read successfully. Anything else is shown in its row and leaves that company's data untouched for the run:
 
@@ -134,11 +135,15 @@ The daily run only watches companies already in `config/companies.toml`. Discove
 2. Copy `.env.example` to `.env` and fill in `ADZUNA_APP_ID` and `ADZUNA_APP_KEY`. `.env` is gitignored.
 3. Copy `config/discovery.example.toml` to `config/discovery.toml` and set your role terms, industry terms, and countries. The example's comments explain each setting.
 
-**Run it** (about weekly; it takes a few minutes, because calls are spaced to respect Adzuna's limits):
+**Run it.** Once `config/discovery.toml` exists, the scheduled daily task (below) starts discovery for you after each daily run. You can also start it yourself:
 
 ```powershell
 uv run python -m jobwatcher discover
 ```
+
+It takes a few minutes, because calls are spaced to respect Adzuna's limits.
+
+**`discover` counts at most one run per rolling week:** after a counted run, later attempts in the next 7 days exit straight away without any Adzuna calls, and print when the next run is due. Use `--force` to run again anyway; it writes `discovery-YYYY-MM-DD-2.md` and never replaces an earlier report. Being offline (no response to the first call) records nothing and exits 3, so the next attempt retries. Calls that fail with an error response, such as a bad key or a rate limit, still count for the week, so they aren't repeated every hour. The report lists those failures first.
 
 It writes `reports\discovery-YYYY-MM-DD.md`, grouped by what to do next:
 
@@ -162,7 +167,7 @@ uv run python -m jobwatcher reject "Employer Name" --reason "recruiter, not an e
 
 ## Scheduled daily run (Windows Task Scheduler)
 
-Task Scheduler starts `scripts\run_daily.bat` at logon and every hour. That's safe because `run` counts only one real run per day, and being offline doesn't use it up. The task never wakes the laptop, and it runs with no window.
+Task Scheduler starts `scripts\run_daily.bat` at logon and every hour. That's safe because `run` counts only one real run per day, and being offline doesn't use it up. If `config/discovery.toml` exists, the task then starts `discover`, which counts only one real run per week. The task never wakes the laptop, and it runs with no window.
 
 ### Set it up with the script
 
@@ -203,9 +208,9 @@ In **Task Scheduler**, choose **Create Task**:
 
 ### Check that it's working
 
-- **`logs\run.log`** (gitignored) gets one block per attempt: the time, run's output, and the exit code. Most hourly blocks say "Already ran today".
-- **`reports\`** gets one `YYYY-MM-DD.md` per day the laptop was online.
-- **Task Scheduler's "Last Run Result"** shows run's exit code:
+- **`logs\run.log`** (gitignored) gets one block per attempt: the time, run's output, and the exit code, then discover's output and exit code. Most hourly blocks say "Already ran today" and "Discovery already ran".
+- **`reports\`** gets one `YYYY-MM-DD.md` per day the laptop was online, and one `discovery-YYYY-MM-DD.md` per week.
+- **Task Scheduler's "Last Run Result"** shows run's exit code. A discovery problem doesn't change it, so check the log or the discovery report for those.
 
 | Last Run Result | Meaning |
 |---|---|

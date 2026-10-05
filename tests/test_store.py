@@ -452,7 +452,7 @@ def test_version_2_database_is_migrated_to_3_with_runs_intact(tmp_path: Path) ->
     conn.close()
 
     with Store.open(db) as store:
-        assert store._conn.execute("PRAGMA user_version").fetchone()[0] == 3
+        assert store._conn.execute("PRAGMA user_version").fetchone()[0] == SCHEMA_VERSION
         assert store.run_on(DAY1.date()) == ("ok", "r.md")
         assert store.get("greenhouse:acme:1") is not None
         assert store.board_check("acme") is None
@@ -483,3 +483,45 @@ def test_board_check_status_must_be_known(store: Store) -> None:
 
     with pytest.raises(sqlite3.IntegrityError):
         store.record_board_check(BoardCheck("x", "X", "error", None, None, "boom", DAY1))
+
+
+# --- schema version 4: discovery runs (issue 2b.5) ---
+
+
+def test_version_3_database_is_migrated_to_4_with_board_checks_intact(tmp_path: Path) -> None:
+    from jobwatcher.store import _MIGRATIONS
+
+    db = tmp_path / "jobwatcher.db"
+    _version_1_database(db)
+    conn = sqlite3.connect(db)
+    for version in (2, 3):
+        for statement in _MIGRATIONS[version].split(";"):
+            if statement.strip():
+                conn.execute(statement)
+    conn.execute(
+        "INSERT INTO board_checks VALUES ('acme', 'Acme', '2026-10-01T07:00:00.000000+00:00', "
+        "'not_found', NULL, NULL, 'no board')"
+    )
+    conn.execute("PRAGMA user_version = 3")
+    conn.commit()
+    conn.close()
+
+    with Store.open(db) as store:
+        assert store._conn.execute("PRAGMA user_version").fetchone()[0] == 4
+        check = store.board_check("acme")
+        assert check is not None and check.status == "not_found"
+        assert store.last_discovery_run() is None
+
+
+def test_last_discovery_run_is_the_latest_by_time(store: Store) -> None:
+    from datetime import date
+
+    assert store.last_discovery_run() is None
+    store.record_discovery_run(DAY1, "partial", "reports/discovery-2026-10-01.md")
+    store.record_discovery_run(DAY1 + timedelta(days=7), "ok", "reports/discovery-2026-10-08.md")
+    assert store.last_discovery_run() == (date(2026, 10, 8), "reports/discovery-2026-10-08.md")
+
+
+def test_discovery_run_outcome_must_be_known(store: Store) -> None:
+    with pytest.raises(sqlite3.IntegrityError):
+        store.record_discovery_run(DAY1, "offline", "x.md")

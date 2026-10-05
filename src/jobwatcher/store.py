@@ -17,7 +17,7 @@ from typing import Self
 
 from jobwatcher.models import Company, Posting, PostingStatus, Remote, SourceName
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 # STRICT makes SQLite enforce column types (by default it stores whatever it
 # is given). The CHECK constraints keep enum columns to their known values,
@@ -75,6 +75,16 @@ CREATE TABLE board_checks (
     source        TEXT CHECK (source IN ('greenhouse', 'lever', 'ashby')),
     board         TEXT,
     detail        TEXT NOT NULL
+) STRICT;
+""",
+    # Version 4 (issue 2b.5): one row per counted discovery run, so the daily
+    # task can start discover every hour and it still runs once a week.
+    4: """
+CREATE TABLE discovery_runs (
+    run_at      TEXT NOT NULL,
+    local_date  TEXT NOT NULL,
+    outcome     TEXT NOT NULL CHECK (outcome IN ('ok', 'partial')),
+    report_path TEXT NOT NULL
 ) STRICT;
 """,
 }
@@ -214,6 +224,24 @@ class Store:
             (f"{local_date:%Y-%m-%d}",),
         ).fetchone()
         return None if row is None else (str(row["outcome"]), str(row["report_path"]))
+
+    def record_discovery_run(self, run_at: datetime, outcome: str, report_path: str) -> None:
+        """Record a counted discovery run: 'ok', or 'partial' if some calls failed."""
+        with self._conn:
+            self._conn.execute(
+                "INSERT INTO discovery_runs (run_at, local_date, outcome, report_path) "
+                "VALUES (?, ?, ?, ?)",
+                (_to_text(run_at), f"{run_at:%Y-%m-%d}", outcome, report_path),
+            )
+
+    def last_discovery_run(self) -> tuple[date, str] | None:
+        """(local date, report path) of the most recent counted discovery run."""
+        row = self._conn.execute(
+            "SELECT local_date, report_path FROM discovery_runs ORDER BY run_at DESC LIMIT 1"
+        ).fetchone()
+        if row is None:
+            return None
+        return date.fromisoformat(str(row["local_date"])), str(row["report_path"])
 
     def board_check(self, employer_key: str) -> BoardCheck | None:
         """The stored job board detection for an employer, if it was checked."""

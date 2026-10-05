@@ -7,13 +7,20 @@ The fixture is a real Adzuna response (US, "commissioning engineer",
 import io
 import json
 from collections.abc import Callable
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 import httpx
 import pytest
 
 from jobwatcher import fetch
-from jobwatcher.__main__ import EXIT_COMPANY_FAILED, EXIT_OK, EXIT_UNUSABLE, run_discover
+from jobwatcher.__main__ import (
+    EXIT_COMPANY_FAILED,
+    EXIT_OFFLINE,
+    EXIT_OK,
+    EXIT_UNUSABLE,
+    run_discover,
+)
 from jobwatcher.config import ConfigError
 from jobwatcher.discovery import (
     SECONDS_BETWEEN_CALLS,
@@ -25,6 +32,7 @@ from jobwatcher.discovery import (
     Grouped,
     SearchBlock,
     discover,
+    discovery_due,
     employer_key,
     group_candidates,
     known_employer_names,
@@ -34,6 +42,7 @@ from jobwatcher.discovery import (
 from jobwatcher.env import read_env_file, require
 from jobwatcher.matching import Terms
 from jobwatcher.sources.payload import ShapeError
+from jobwatcher.store import Store
 
 FIXTURE = Path(__file__).parent / "fixtures" / "adzuna_search.json"
 REPO_ROOT = Path(__file__).parent.parent
@@ -480,7 +489,7 @@ class Setup:
         [path] = sorted(self.reports.glob("discovery-*.md"))[-1:]
         return path.read_text(encoding="utf-8")
 
-    def run(self) -> tuple[int, str]:
+    def run(self, force: bool = False) -> tuple[int, str]:
         out = io.StringIO()
         code = run_discover(
             self.discovery,
@@ -491,8 +500,18 @@ class Setup:
             pause=lambda _: None,
             db_path=self.db,
             reports_dir=self.reports,
+            force=force,
         )
         return code, out.getvalue()
+
+    def last_run(self) -> tuple[date, str] | None:
+        with Store.open(self.db) as store:
+            return store.last_discovery_run()
+
+    def ran_days_ago(self, days: int) -> None:
+        when = datetime.now(UTC).astimezone() - timedelta(days=days)
+        with Store.open(self.db) as store:
+            store.record_discovery_run(when, "ok", "reports/discovery-earlier.md")
 
 
 class FakeAdzuna:
@@ -507,12 +526,15 @@ class FakeAdzuna:
         self.board_requests: list[httpx.Request] = []
         self.boards: dict[str, httpx.Response] = {}  # URL -> response
         self.status = 200
+        self.offline = False  # every Adzuna call fails with no response
 
     def handle(self, request: httpx.Request) -> httpx.Response:
         if request.url.host != "api.adzuna.com":
             self.board_requests.append(request)
             return self.boards.get(str(request.url), httpx.Response(404))
         self.requests.append(request)
+        if self.offline:
+            raise httpx.ConnectError(f"no route to {request.url}", request=request)
         if self.status != 200:
             # A hostile error body that echoes the full URL, key included.
             return httpx.Response(self.status, text=f"error for {request.url}")
@@ -595,6 +617,114 @@ def test_discover_shows_each_employers_board(adzuna: FakeAdzuna, tmp_path: Path)
 
     # Second run: remembered, so no board requests at all.
     adzuna.board_requests.clear()
-    _, out = setup.run()
+    _, out = setup.run(force=True)
     assert "Job boards: 0 looked up this run (0 requests), 1 remembered" in out
     assert adzuna.board_requests == []
+
+
+# --- weekly cadence (issue 2b.5) ---
+
+
+def test_discovery_is_due_after_a_rolling_week() -> None:
+    today = date(2026, 10, 13)
+    assert discovery_due(None, today)
+    assert not discovery_due(date(2026, 10, 13), today)
+    assert not discovery_due(date(2026, 10, 7), today)  # 6 days ago
+    assert discovery_due(date(2026, 10, 6), today)  # 7 days ago
+    assert discovery_due(date(2026, 9, 1), today)
+
+
+def test_a_counted_run_skips_discovery_for_the_rest_of_the_week(
+    adzuna: FakeAdzuna, tmp_path: Path
+) -> None:
+    setup = Setup(tmp_path)
+    code, _ = setup.run()
+    assert code == EXIT_OK
+    last = setup.last_run()
+    assert last is not None
+    today = datetime.now(UTC).astimezone().date()
+    assert last[0] == today and last[1].endswith(f"discovery-{today:%Y-%m-%d}.md")
+
+    adzuna.requests.clear()
+    code, out = setup.run()
+    assert code == EXIT_OK
+    assert adzuna.requests == []
+    due = today + timedelta(days=7)
+    assert out == (
+        f"Discovery already ran on {today:%Y-%m-%d}; report: {last[1]}. "
+        f"Next run is due on {due:%Y-%m-%d}. Use --force to run again.\n"
+    )
+    assert len(list(setup.reports.glob("discovery-*.md"))) == 1
+
+
+def test_force_runs_again_and_keeps_the_earlier_report(adzuna: FakeAdzuna, tmp_path: Path) -> None:
+    setup = Setup(tmp_path)
+    setup.run()
+    adzuna.requests.clear()
+    code, _ = setup.run(force=True)
+    assert code == EXIT_OK
+    assert len(adzuna.requests) == 4
+    assert len(list(setup.reports.glob("discovery-*.md"))) == 2
+    last = setup.last_run()
+    assert last is not None and last[1].endswith("-2.md")
+
+
+@pytest.mark.parametrize(("days_ago", "runs"), [(6, False), (7, True)])
+def test_an_earlier_run_counts_for_seven_days(
+    adzuna: FakeAdzuna, tmp_path: Path, days_ago: int, runs: bool
+) -> None:
+    setup = Setup(tmp_path)
+    setup.ran_days_ago(days_ago)
+    code, out = setup.run()
+    assert code == EXIT_OK
+    assert bool(adzuna.requests) is runs
+    assert ("Discovery already ran" in out) is not runs
+
+
+def test_weekly_skip_needs_no_credentials(adzuna: FakeAdzuna, tmp_path: Path) -> None:
+    # The daily task starts discover every hour; a skipped attempt must not
+    # depend on, or complain about, the .env file.
+    setup = Setup(tmp_path)
+    setup.ran_days_ago(1)
+    setup.env.unlink()
+    code, out = setup.run()
+    assert code == EXIT_OK and "Discovery already ran" in out
+
+
+def test_offline_stops_after_one_call_and_is_not_counted(
+    adzuna: FakeAdzuna, tmp_path: Path
+) -> None:
+    setup = Setup(tmp_path)
+    adzuna.offline = True
+    code, out = setup.run()
+
+    assert code == EXIT_OFFLINE
+    assert len(adzuna.requests) == 1
+    assert adzuna.board_requests == []
+    assert "Offline, will retry" in out and "request failed: ConnectError" in out
+    assert FAKE_KEY not in out and FAKE_ID not in out and "api.adzuna.com" not in out
+    assert setup.last_run() is None
+    assert not setup.reports.exists()
+
+    # Back online: the next attempt runs in full.
+    adzuna.offline = False
+    adzuna.requests.clear()
+    code, _ = setup.run()
+    assert code == EXIT_OK and len(adzuna.requests) == 4
+
+
+def test_failed_calls_still_count_for_the_week(adzuna: FakeAdzuna, tmp_path: Path) -> None:
+    # An HTTP error proves the network works. Retrying every hour would only
+    # repeat a bad key or a rate limit, so the run counts and the report says why.
+    setup = Setup(tmp_path)
+    adzuna.status = 429
+    code, _ = setup.run()
+    assert code == EXIT_COMPANY_FAILED
+    assert setup.last_run() is not None
+    with Store.open(setup.db) as store:
+        row = store._conn.execute("SELECT outcome FROM discovery_runs").fetchone()
+    assert row[0] == "partial"
+
+    adzuna.requests.clear()
+    code, _ = setup.run()
+    assert code == EXIT_OK and adzuna.requests == []
