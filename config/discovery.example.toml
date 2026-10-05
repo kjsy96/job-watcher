@@ -27,6 +27,11 @@ require_industry_term = true
 # legal suffixes ("Example Staffing LLC" also matches "example staffing").
 ignore_employers = ["Example Staffing Agency", "Example Job Board"]
 
+# Job board lookups: how many not-yet-checked employers (top-ranked first) get
+# a Greenhouse/Lever/Ashby lookup per run, up to 3 requests each. Results are
+# remembered, so each run continues down the ranking. 0 turns lookups off.
+detect_top = 40
+
 [[search]]
 countries = ["us", "ca"]
 role_terms = ["implementation engineer", "field engineer", "commissioning"]

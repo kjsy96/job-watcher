@@ -473,23 +473,39 @@ class Setup:
         self.rejected = tmp_path / "rejected.toml"
         self.env = tmp_path / ".env"
         self.env.write_text(f"ADZUNA_APP_ID={FAKE_ID}\nADZUNA_APP_KEY={FAKE_KEY}\n")
+        self.db = tmp_path / "data" / "jobwatcher.db"
 
     def run(self) -> tuple[int, str]:
         out = io.StringIO()
         code = run_discover(
-            self.discovery, self.companies, self.rejected, self.env, out, pause=lambda _: None
+            self.discovery,
+            self.companies,
+            self.rejected,
+            self.env,
+            out,
+            pause=lambda _: None,
+            db_path=self.db,
         )
         return code, out.getvalue()
 
 
 class FakeAdzuna:
-    """Answers every search from the fixture, or with a chosen error status."""
+    """Answers Adzuna searches from the fixture (or a chosen error status).
+
+    Job board lookups (Greenhouse, Lever, Ashby) are answered 404 unless a
+    board is registered in self.boards, so detection runs without network.
+    """
 
     def __init__(self) -> None:
-        self.requests: list[httpx.Request] = []
+        self.requests: list[httpx.Request] = []  # Adzuna searches only
+        self.board_requests: list[httpx.Request] = []
+        self.boards: dict[str, httpx.Response] = {}  # URL -> response
         self.status = 200
 
     def handle(self, request: httpx.Request) -> httpx.Response:
+        if request.url.host != "api.adzuna.com":
+            self.board_requests.append(request)
+            return self.boards.get(str(request.url), httpx.Response(404))
         self.requests.append(request)
         if self.status != 200:
             # A hostile error body that echoes the full URL, key included.
@@ -546,3 +562,27 @@ def test_missing_credentials_exit_2_before_any_request(adzuna: FakeAdzuna, tmp_p
     assert code == EXIT_UNUSABLE
     assert "missing ADZUNA_APP_ID, ADZUNA_APP_KEY" in out
     assert adzuna.requests == []
+
+
+def test_discover_shows_each_employers_board(adzuna: FakeAdzuna, tmp_path: Path) -> None:
+    adzuna.boards["https://boards-api.greenhouse.io/v1/boards/amazondataservices/jobs"] = (
+        httpx.Response(
+            200, json={"jobs": [{"title": "Commissioning Engineer, AMER-West ACx"}], "meta": {}}
+        )
+    )
+    setup = Setup(tmp_path)
+
+    code, out = setup.run()
+
+    assert code == EXIT_OK
+    assert "Job boards: 1 looked up this run (1 requests), 0 remembered" in out
+    assert (
+        "    board: confirmed: greenhouse:amazondataservices "
+        "(board has 'Commissioning Engineer, AMER-West ACx')" in out
+    )
+
+    # Second run: remembered, so no board requests at all.
+    adzuna.board_requests.clear()
+    _, out = setup.run()
+    assert "Job boards: 0 looked up this run (0 requests), 1 remembered" in out
+    assert adzuna.board_requests == []

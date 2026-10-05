@@ -23,6 +23,7 @@ import httpx
 from jobwatcher.config import ConfigError
 from jobwatcher.matching import Terms
 from jobwatcher.sources.payload import ShapeError, require_dict, require_list, require_str
+from jobwatcher.store import BoardCheck
 
 API_BASE = "https://api.adzuna.com/v1/api/jobs"
 # Confirmed in issue 2b.1 (docs/sources.md): these answer; se, no, ie, dk,
@@ -87,6 +88,10 @@ class DiscoveryConfig:
     # Normalized names (employer_key) of employers never to propose, such as
     # recruiters and job sites that Adzuna lists as the employer.
     ignore_employers: frozenset[str] = frozenset()
+    # How many not-yet-checked employers get a job board lookup per run (up to
+    # 3 requests each); results are remembered, so later runs continue down
+    # the ranking (issue 2b.3).
+    detect_top: int = 40
 
     @property
     def calls(self) -> int:
@@ -112,6 +117,7 @@ def load_discovery_config(path: Path) -> DiscoveryConfig:
         "max_calls",
         "require_industry_term",
         "ignore_employers",
+        "detect_top",
     }
     if unknown:
         raise ConfigError(f"{path}: unknown key(s) {sorted(unknown)}")
@@ -153,6 +159,7 @@ def load_discovery_config(path: Path) -> DiscoveryConfig:
         max_calls,
         require_industry,
         frozenset(employer_key(n) for n in ignore if isinstance(n, str)),
+        _whole_number(data.get("detect_top", 40), "detect_top", path, 0, 100),
     )
     if config.calls > config.max_calls:
         detail = " + ".join(
@@ -317,6 +324,8 @@ class Candidate:
     key: str
     jobs: list[AdzunaJob] = field(default_factory=list)
     industry_hits: list[str] = field(default_factory=list)
+    board: BoardCheck | None = None  # set by job board detection (issue 2b.3)
+    board_error: str | None = None  # detection was tried this run but failed
 
     @property
     def countries(self) -> list[str]:
