@@ -25,7 +25,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TextIO
 
-from jobwatcher import __version__, discovery, env, fetch
+from jobwatcher import __version__, detection, discovery, env, fetch
 from jobwatcher import run as daily
 from jobwatcher.config import ConfigError, load_companies
 from jobwatcher.fetch import CompanyResult, Outcome
@@ -118,6 +118,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path(".env"),
         help="file holding ADZUNA_APP_ID and ADZUNA_APP_KEY (default: .env)",
     )
+    discover_cmd.add_argument(
+        "--db",
+        type=Path,
+        default=Path("data/jobwatcher.db"),
+        help="SQLite database, which remembers job board lookups (default: data/jobwatcher.db)",
+    )
     return parser
 
 
@@ -139,7 +145,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "refilter":
         return run_refilter(args.config, args.filters, args.db, args.reports, sys.stdout)
     if args.command == "discover":
-        return run_discover(args.discovery, args.config, args.rejected, args.env, sys.stdout)
+        return run_discover(
+            args.discovery, args.config, args.rejected, args.env, sys.stdout, db_path=args.db
+        )
     parser.print_help()
     return EXIT_OK
 
@@ -151,6 +159,7 @@ def run_discover(
     env_path: Path,
     out: TextIO,
     pause: Callable[[float], None] | None = None,
+    db_path: Path = Path("data/jobwatcher.db"),
 ) -> int:
     # Config, credentials, and the call budget are all checked before any request.
     try:
@@ -168,14 +177,24 @@ def run_discover(
         f"takes about {minutes} minute{'s' if minutes != 1 else ''}.",
         file=out,
     )
-    with fetch.make_client() as http:
-        client = discovery.AdzunaClient(
-            http,
-            creds["ADZUNA_APP_ID"],
-            creds["ADZUNA_APP_KEY"],
-            **({"pause": pause} if pause is not None else {}),
-        )
-        result = discovery.discover(config, client, known)
+    sleep = {"pause": pause} if pause is not None else {}
+    try:
+        with Store.open(db_path) as store, fetch.make_client() as http:
+            client = discovery.AdzunaClient(
+                http, creds["ADZUNA_APP_ID"], creds["ADZUNA_APP_KEY"], **sleep
+            )
+            result = discovery.discover(config, client, known)
+            boards = detection.detect_boards(
+                result.candidates,
+                store,
+                http,
+                datetime.now(UTC),
+                config.detect_top,
+                **sleep,
+            )
+    except StoreError as exc:
+        print(f"Database error: {exc}", file=out)
+        return EXIT_UNUSABLE
 
     print(
         f"{len(result.candidates)} new employers; {result.skipped_known} already known "
@@ -184,7 +203,13 @@ def run_discover(
         f"{result.calls} calls, {len(result.errors)} failed.",
         file=out,
     )
-    for error in result.errors:
+    print(
+        f"Job boards: {boards.checked} looked up this run ({boards.requests} requests), "
+        f"{boards.from_earlier} remembered from earlier runs, {boards.not_checked} not "
+        f"checked yet (limit {config.detect_top} per run), {len(boards.errors)} failed.",
+        file=out,
+    )
+    for error in [*result.errors, *boards.errors]:
         print(f"  ERROR {error}", file=out)
     for c in result.candidates:
         industry = ", ".join(c.industry_hits) if c.industry_hits else "no industry terms found"
@@ -192,11 +217,24 @@ def run_discover(
             f"- {c.name} [{'/'.join(c.countries)}] {len(c.jobs)} ad(s); industry: {industry}",
             file=out,
         )
+        print(f"    board: {_board_text(c)}", file=out)
         for title in c.titles[:3]:
             print(f"    {title}", file=out)
     print("Source: The Adzuna API (https://www.adzuna.co.uk/)", file=out)
     # Any failed call is reported and makes the exit non-zero, like a failed board.
-    return EXIT_OK if not result.errors else EXIT_COMPANY_FAILED
+    failed = result.errors or boards.errors
+    return EXIT_OK if not failed else EXIT_COMPANY_FAILED
+
+
+def _board_text(candidate: discovery.Candidate) -> str:
+    if candidate.board_error is not None:
+        return f"lookup failed ({candidate.board_error}); retried next run"
+    check = candidate.board
+    if check is None:
+        return "not checked yet"
+    if check.status == "not_found":
+        return f"not found: {check.detail}"
+    return f"{check.status}: {check.source}:{check.board} ({check.detail})"
 
 
 def run_refilter(
