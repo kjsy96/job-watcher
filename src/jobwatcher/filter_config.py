@@ -14,7 +14,7 @@ from jobwatcher.config import ConfigError
 from jobwatcher.matching import Terms
 
 # Two-letter codes that count as a state or province after a comma, as in
-# "Portland, OR". Kept here, not in config, because they are facts, not
+# "Springfield, VT". Kept here, not in config, because they are facts, not
 # preferences; config only says which of them belong to which tier.
 US_STATE_CODES = frozenset(
     [
@@ -80,7 +80,7 @@ REGION_CODES = US_STATE_CODES | CA_PROVINCE_CODES
 _TIER_KEY = re.compile(r"tier(\d+)")
 
 _SECTION_KEYS: dict[str, frozenset[str]] = {
-    "roles": frozenset({"title_include", "title_exclude"}),
+    "roles": frozenset({"title_include", "title_exclude", "title_flag_terms"}),
     "domain": frozenset({"terms"}),
     "work": frozenset({"terms"}),
     "description": frozenset({"flag_terms"}),
@@ -131,6 +131,9 @@ class Sponsorship:
 class FilterRules:
     title_include: Terms
     title_exclude: Terms
+    # Titles that usually mean a role that isn't a fit, but not always
+    # ("Firmware Support Engineer"). Flagged when a role term also hits.
+    title_flag_terms: Terms
     domain_terms: Terms
     work_terms: Terms
     non_us_remote_terms: Terms
@@ -174,6 +177,7 @@ def load_filter_rules(path: Path) -> FilterRules:
     return FilterRules(
         title_include=title_include,
         title_exclude=_terms(roles, "title_exclude", f"{path} [roles]"),
+        title_flag_terms=_terms(roles, "title_flag_terms", f"{path} [roles]"),
         domain_terms=_terms(domain, "terms", f"{path} [domain]"),
         work_terms=_terms(work, "terms", f"{path} [work]"),
         non_us_remote_terms=_terms(location, "non_us_remote_terms", f"{path} [location]"),

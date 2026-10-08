@@ -8,6 +8,9 @@
 # Title must contain at least one of these to be considered at all
 title_include = ["implementation", "deployment", "field engineer", "test engineer"]
 title_exclude = ["intern", "vp ", "account executive"]
+# Usually not a fit, but titles can mix them with a role term ("Firmware Test
+# Engineer"). With a role term: flagged for a look. Without one: excluded.
+title_flag_terms = ["firmware"]
 
 [domain]
 # Industries and settings, matched in the description or the company's sector
@@ -20,9 +23,9 @@ terms = ["feasibility", "commissioning", "data validation"]
 [location]
 # Matched against the posting's location field only. A posting listing several
 # locations ("A; B") gets the best tier among them. How a location is placed:
-#   1. A state or province code after a comma ("Portland, OR") decides the tier.
+#   1. A state or province code after a comma ("Springfield, VT") decides the tier.
 #      A tier that lists codes only accepts its place names with one of its own
-#      codes, so "Salem, MA" never matches a tier with place "salem" + code OR.
+#      codes, so "Burlington, MA" never matches a tier with place "burlington" + code VT.
 #   2. Remote tied to a place in non_us_remote_terms is excluded.
 #   3. place_terms match anywhere in the location.
 #   4. us_wide_terms / country_terms count only for a bare country
@@ -39,12 +42,12 @@ ambiguous_terms = []
 label = "Preferred"
 remote_terms = ["remote"]
 us_wide_terms = ["united states"]
-state_codes = ["CO"]                # US state codes; province_codes for Canada
-place_terms = ["denver"]
+state_codes = ["ID"]                # US state codes; province_codes for Canada
+place_terms = ["boise"]
 
 [location.tier2]
 label = "Acceptable"
-place_terms = ["boulder"]
+place_terms = ["meridian"]
 
 [location.tier3]
 label = "Abroad, sponsorship needed"

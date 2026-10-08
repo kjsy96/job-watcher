@@ -203,7 +203,7 @@ def store() -> Iterator[Store]:
 
 
 def candidate(name: str, title: str = "Field Engineer") -> Candidate:
-    ad = AdzunaJob(name, title, "Denver", "us", "", "", "")
+    ad = AdzunaJob(name, title, "Boise", "us", "", "", "")
     return Candidate(name, employer_key(name), [ad], ["mining"])
 
 

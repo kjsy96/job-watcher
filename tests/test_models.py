@@ -13,7 +13,7 @@ def make_posting(**overrides: object) -> Posting:
         "source_job_id": "4012345",
         "company": "Example Industrial AI Co",
         "title": "Implementation Engineer",
-        "location": "Denver, CO",
+        "location": "Boise, ID",
         "remote": Remote.UNKNOWN,
         "url": "https://boards.greenhouse.io/exampleco/jobs/4012345",
         "description_text": "Commissioning and data validation at mining sites.",

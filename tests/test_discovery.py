@@ -57,7 +57,7 @@ def payload() -> dict[str, object]:
 
 
 def job(employer: str, title: str = "Field Engineer", **kw: str) -> AdzunaJob:
-    fields = {"location": "Denver", "country": "us", "snippet": "", "category": "", "created": ""}
+    fields = {"location": "Boise", "country": "us", "snippet": "", "category": "", "created": ""}
     fields.update(kw)
     return AdzunaJob(employer=employer, title=title, **fields)
 

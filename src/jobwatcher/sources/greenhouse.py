@@ -19,7 +19,7 @@ from jobwatcher.sources.text import html_to_text
 API_BASE = "https://boards-api.greenhouse.io/v1/boards"
 
 # Greenhouse has no remote field, so only location text can say "remote".
-# Anything else is unknown, not "no": "Denver, CO" doesn't rule out remote.
+# Anything else is unknown, not "no": "Boise, ID" doesn't rule out remote.
 _REMOTE_WORD = re.compile(r"\bremote\b", re.IGNORECASE)
 
 

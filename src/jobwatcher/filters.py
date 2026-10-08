@@ -11,7 +11,8 @@ Outcome order (PROJECT_PLAN.md, "Filter outcomes"):
               refused in a tier that needs it. All reasons are kept.
 2. Possible:  the title fits, but no domain or work term was found.
 3. Flagged:   would be a Match, but something needs a human look:
-              unclear location, travel, or sponsorship, or a flag term.
+              unclear location, travel, or sponsorship, a description flag
+              term, or a title flag term alongside a role term.
 4. Match:     everything checks out. Ranked by overlap score.
 """
 
@@ -53,6 +54,7 @@ def evaluate(posting: Posting, rules: FilterRules, sector: str = "") -> FilterRe
     text = posting.description_text
     title_terms = rules.title_include.hits(posting.title)
     excluded_title = rules.title_exclude.hits(posting.title)
+    unlikely_title = rules.title_flag_terms.hits(posting.title)
     location = place(posting.location, rules, board_says_remote=posting.remote is Remote.YES)
 
     exclusions: list[str] = []  # any of these: Excluded
@@ -62,7 +64,16 @@ def evaluate(posting: Posting, rules: FilterRules, sector: str = "") -> FilterRe
     if excluded_title:
         exclusions.append(f"title contains excluded term(s): {', '.join(excluded_title)}")
     if not title_terms:
-        exclusions.append("title matches no role term")
+        exclusions.append(
+            "title matches no role term"
+            + (f" (and mentions {', '.join(unlikely_title)})" if unlikely_title else "")
+        )
+    elif unlikely_title:
+        # A role term hit too, so the title is ambiguous: a person decides.
+        flags.append(
+            f"title mentions {', '.join(unlikely_title)}, which is usually not a fit; "
+            "check what the role is"
+        )
 
     if location.placement is Placement.EXCLUDE:
         exclusions.append(f"location: {location.reason}")

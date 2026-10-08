@@ -4,10 +4,10 @@ Location strings from the three boards are free text, sometimes several
 locations joined with "; ". Each segment is judged on its own and the
 posting gets its best tier. The rules, in order of strength:
 
-1. A state or province code after a comma ("Portland, OR") decides the
-   tier. "Salem, MA" fits no tier even though "salem" is a tier 1 place.
+1. A state or province code after a comma ("Springfield, VT") decides the
+   tier. "Burlington, MA" fits no tier even though "burlington" is a tier 1 place.
 2. Remote tied to another country ("Remote - India") is excluded.
-3. Place terms ("denver", "texarkana") anywhere in the segment.
+3. Place terms ("boise", "texarkana") anywhere in the segment.
 4. Country terms ("united states") only for a bare country or a remote
    listing. "Austin, TX, United States" is not "remote US".
 5. Plain "Remote" with nothing else goes to the first tier listing it.
@@ -24,9 +24,9 @@ from enum import StrEnum
 from jobwatcher.filter_config import REGION_CODES, FilterRules, Tier
 from jobwatcher.matching import Terms
 
-# A known two-letter code right after a comma: "Portland, OR",
-# "Denver, CO, United States". Uppercase only, so "Portland, or Salem"
-# can't count as Oregon.
+# A known two-letter code right after a comma: "Springfield, VT",
+# "Boise, ID, United States". Uppercase only, so "Springfield, or Burlington"
+# can't count as Vermont.
 _CODE_AFTER_COMMA = re.compile(r",\s*([A-Z]{2})\b")
 # Separators and punctuation, removed when checking whether anything is
 # left of a segment besides the words already accounted for.
@@ -84,8 +84,8 @@ def _place_segment(
         )
 
     # 3. Place terms. A tier that lists codes only accepts its place names
-    # without a code or with one of its own codes, so "Salem, MA" can't match
-    # tier "salem" + OR. A tier with no codes (e.g. "texarkana", which
+    # without a code or with one of its own codes, so "Burlington, MA" can't match
+    # tier "burlington" + VT. A tier with no codes (e.g. "texarkana", which
     # spans TX and AR) matches on the place name alone.
     for tier in rules.tiers:
         if codes and tier.region_codes:

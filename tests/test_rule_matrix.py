@@ -78,6 +78,22 @@ ROWS = [
         "title: implementation",
         title="Implementation Lead (VPN team)",  # "vp" is not "VPN"
     ),
+    # --- Usually-not-a-fit title words (title_flag_terms) ---
+    Row(
+        "title flag",
+        "match",
+        EXCLUDED,
+        "title matches no role term (and mentions controls engineer)",
+        title="Controls Engineer",
+    ),
+    Row("title flag", "no match", MATCH, "title: implementation"),
+    Row(
+        "title flag",
+        "can't tell",
+        FLAGGED,
+        "title mentions firmware, which is usually not a fit; check what the role is",
+        title="Firmware Implementation Engineer",
+    ),
     # --- Domain terms (description or company sector) ---
     Row("domain", "match in description", MATCH, "domain: mining"),
     Row(
@@ -135,7 +151,7 @@ ROWS = [
         description="Mining commissioning, then train the trainer sessions.",
     ),
     # --- Location: tier placement ---
-    Row("location tier", "match", MATCH, "tier 1 (Remote US / Mountain)"),
+    Row("location tier", "match", MATCH, "tier 1 (Remote US / Example states)"),
     Row(
         "location tier",
         "no match",
@@ -147,8 +163,8 @@ ROWS = [
         "location tier",
         "can't tell: ambiguous place",
         FLAGGED,
-        "'Portland' is ambiguous",
-        location="Portland",
+        "'Springfield' is ambiguous",
+        location="Springfield",
     ),
     Row(
         "location tier",
@@ -173,13 +189,13 @@ ROWS = [
         remote=Remote.YES,
     ),
     # --- Location: state/province code decides ---
-    Row("state code", "match", MATCH, "'Salem, OR' matched OR", location="Salem, OR"),
+    Row("state code", "match", MATCH, "'Burlington, VT' matched VT", location="Burlington, VT"),
     Row(
         "state code",
         "no match (place name alone does not override the code)",
         EXCLUDED,
-        "'Salem, MA' is in MA, which is in no tier",
-        location="Salem, MA",
+        "'Burlington, MA' is in MA, which is in no tier",
+        location="Burlington, MA",
     ),
     Row(
         "state code",
@@ -334,8 +350,8 @@ ROWS = [
         "multiple locations",
         "can't tell (nothing placed, one segment ambiguous)",
         FLAGGED,
-        "'Portland' is ambiguous",
-        location="Remote - India; Portland",
+        "'Springfield' is ambiguous",
+        location="Remote - India; Springfield",
     ),
 ]
 

@@ -20,18 +20,18 @@ TIER, FLAG, EXCLUDE = Placement.TIER, Placement.FLAG, Placement.EXCLUDE
         ("Remote - US", TIER, 1),
         ("Remote, United States", TIER, 1),
         # Codes decide
-        ("Portland, OR", TIER, 1),
-        ("Boulder, CO", TIER, 1),
-        ("Remote, CO", TIER, 1),  # a code after a comma is a state code
+        ("Springfield, VT", TIER, 1),
+        ("Meridian, ID", TIER, 1),
+        ("Remote, ID", TIER, 1),  # a code after a comma is a state code
         ("Montreal, QC", TIER, 2),
-        ("Salem, OR", TIER, 1),
-        ("Salem, MA", EXCLUDE, None),  # same city name, wrong state
-        ("Portland, ME", EXCLUDE, None),
+        ("Burlington, VT", TIER, 1),
+        ("Burlington, MA", EXCLUDE, None),  # same city name, wrong state
+        ("Springfield, ME", EXCLUDE, None),
         ("Irvine, CA", EXCLUDE, None),  # CA is a real state code, in no tier here
         ("Austin, TX, United States", EXCLUDE, None),  # on-site, not "US-wide"
         # Place terms
-        ("Denver", TIER, 1),
-        ("Salem", TIER, 1),
+        ("Boise", TIER, 1),
+        ("Burlington", TIER, 1),
         ("Quebec City", TIER, 2),
         # A tier with no codes matches its places in any state
         ("Texarkana, TX", TIER, 3),
@@ -49,7 +49,7 @@ TIER, FLAG, EXCLUDE = Placement.TIER, Placement.FLAG, Placement.EXCLUDE
         ("Bangalore, India", EXCLUDE, None),  # on-site abroad: no tier, not "remote tied"
         ("Atlanta, Georgia", EXCLUDE, None),
         # Ambiguous: flag, don't guess
-        ("Portland", FLAG, None),
+        ("Springfield", FLAG, None),
         ("Springfield", FLAG, None),
         ("CA", FLAG, None),  # California or Canada
         # Remote, but the rest of the text isn't recognized
@@ -71,21 +71,21 @@ def test_best_tier_wins_across_segments() -> None:
 
 
 def test_any_tier_beats_a_flag_or_exclusion() -> None:
-    result = place("Portland; Remote - India; Texarkana, TX", RULES)
+    result = place("Springfield; Remote - India; Texarkana, TX", RULES)
     assert result.tier is not None and result.tier.number == 3
 
 
 def test_flag_beats_exclusion_when_nothing_is_placed() -> None:
-    result = place("Remote - India; Portland", RULES)
+    result = place("Remote - India; Springfield", RULES)
     assert result.placement is FLAG
-    assert "'Portland' is ambiguous (portland)" in result.reason
+    assert "'Springfield' is ambiguous (springfield)" in result.reason
 
 
 def test_all_exclusion_reasons_are_kept() -> None:
-    result = place("Salem, MA; Remote - India", RULES)
+    result = place("Burlington, MA; Remote - India", RULES)
     assert result.placement is EXCLUDE
     assert result.reason == (
-        "'Salem, MA' is in MA, which is in no tier; 'Remote - India' is remote tied to india"
+        "'Burlington, MA' is in MA, which is in no tier; 'Remote - India' is remote tied to india"
     )
 
 
@@ -103,12 +103,12 @@ def test_board_remote_flag_changes_unplaced_cities(location: str, placement: Pla
 
 
 def test_reason_names_tier_segment_and_term() -> None:
-    result = place("Salem, OR", RULES)
-    assert result.reason == "tier 1 (Remote US / Mountain): 'Salem, OR' matched OR"
+    result = place("Burlington, VT", RULES)
+    assert result.reason == "tier 1 (Remote US / Example states): 'Burlington, VT' matched VT"
 
 
 def test_lowercase_after_comma_is_not_a_code() -> None:
-    # "or" here is a word, not Oregon.
+    # "or" here is a word, not Vermont.
     assert place("Remote, or hybrid", RULES).placement is FLAG
 
 
@@ -116,7 +116,7 @@ def _rules_with_remote_only_in_tier2(tmp_path: Path, tier2_remote: str) -> Filte
     path = tmp_path / "filters.toml"
     path.write_text(
         '[roles]\ntitle_include = ["engineer"]\n[domain]\nterms = []\n[work]\nterms = []\n'
-        '[location.tier1]\nlabel = "On-site only"\nplace_terms = ["denver"]\n'
+        '[location.tier1]\nlabel = "On-site only"\nplace_terms = ["boise"]\n'
         f'[location.tier2]\nlabel = "Remote OK"\nremote_terms = [{tier2_remote}]\n',
         encoding="utf-8",
     )

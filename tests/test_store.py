@@ -24,7 +24,7 @@ def posting(job_id: str, company: Company = ACME, **overrides: object) -> Postin
         "source_job_id": job_id,
         "company": company.name,
         "title": f"Implementation Engineer {job_id}",
-        "location": "Denver, CO",
+        "location": "Boise, ID",
         "remote": Remote.UNKNOWN,
         "url": f"https://example.test/{company.board}/{job_id}",
         "description_text": "Commissioning at mining sites.",
@@ -241,8 +241,8 @@ def test_last_seen_compares_by_time_across_time_zones(store: Store) -> None:
 def test_non_utc_times_are_stored_as_utc(store: Store) -> None:
     from datetime import timezone
 
-    denver = timezone(timedelta(hours=-6))
-    store.record_board(ACME, [posting("1")], datetime(2026, 10, 1, 1, 0, tzinfo=denver))
+    boise = timezone(timedelta(hours=-6))
+    store.record_board(ACME, [posting("1")], datetime(2026, 10, 1, 1, 0, tzinfo=boise))
     stored = store.get("greenhouse:acme:1")
     assert stored is not None
     assert stored.first_seen_at == datetime(2026, 10, 1, 7, 0, tzinfo=UTC)
@@ -368,7 +368,7 @@ def _version_1_database(path: Path) -> None:
     conn.execute(
         "INSERT INTO postings (id, source, board, source_job_id, company, title, location, "
         "remote, url, description_text, first_seen_at, last_seen_at, status) VALUES "
-        "('greenhouse:acme:1', 'greenhouse', 'acme', '1', 'Acme', 'Old Posting', 'Denver', "
+        "('greenhouse:acme:1', 'greenhouse', 'acme', '1', 'Acme', 'Old Posting', 'Boise', "
         "'unknown', 'https://example.test/1', 'text', '2026-10-01T07:00:00.000000+00:00', "
         "'2026-10-01T07:00:00.000000+00:00', 'open')"
     )

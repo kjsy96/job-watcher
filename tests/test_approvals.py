@@ -223,7 +223,7 @@ def candidate(
     titles: tuple[str, ...] = ("Field Engineer",),
     hits: tuple[str, ...] = ("mining",),
 ) -> Candidate:
-    jobs = [AdzunaJob(name, t, "Denver", "us", "", "", "") for t in titles]
+    jobs = [AdzunaJob(name, t, "Boise", "us", "", "", "") for t in titles]
     return Candidate(name, employer_key(name), jobs, list(hits), board)
 
 

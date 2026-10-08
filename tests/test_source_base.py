@@ -35,7 +35,7 @@ class FakeSource(Source):
                 source_job_id="1",
                 company=company.name,
                 title="Implementation Engineer",
-                location="Denver, CO",
+                location="Boise, ID",
                 remote=Remote.UNKNOWN,
                 url="https://example.test/jobs/1",
                 description_text="",
