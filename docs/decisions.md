@@ -9,6 +9,8 @@ Owner decisions that change the plan, the rules, or how the tool behaves, newest
 - **Location tiers restructured:** remote stays preferred. On-site and hybrid roles are now acceptable in a set of named regions, split across tiers by how each region's places are recognized (by state code, or by city name where only part of a state counts). The sponsorship tier and the lowest-priority tier are kept.
 - **Title flag terms:** a new rule, `[roles] title_flag_terms`, for kinds of role that are usually not a fit. A title with one of these terms and also a role term is flagged for a look rather than excluded. Without a role term it's excluded as before, and the reason names the term.
 
+- **One excluded title term added:** the new role term also matched an HR title, so that title's wording was added to `title_exclude`.
+
 **Why:** Several generic role titles fit the new sector, so they were kept as role terms. The overlap score still decides between Match and Possible. Some engineering titles in the sector are rarely a fit, but share words with ones that are. Flagging the mixed titles follows "flag, don't guess."
 
 **Also:** the public example config, test fixture, and doc examples now use neutral places, so none of the owner's target places appear in public files.
