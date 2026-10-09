@@ -13,7 +13,7 @@ The owner makes every application decision. This tool stops at a shortlist. It n
 ## Design principles (non-negotiable)
 
 1. **Deterministic code does the repeatable work. Claude does the judgment.** Fetching, storing, deduplicating, and rule-based filtering are plain Python. No LLM calls in phases 1 and 2.
-2. **Flag, don't guess.** If a rule can't tell whether a posting matches (for example, travel percentage not stated), flag it with a reason instead of silently including or excluding it. Every exclusion and flag records why.
+2. **Flag, don't guess.** If a rule can't tell whether a posting matches (for example, a location that could be in two states), flag it with a reason instead of silently including or excluding it. Every exclusion and flag records why.
 3. **No silent failures.** A company whose board fails to load, returns an unexpected shape, or returns zero jobs when it normally has some is reported in the run summary. A broken source must never look like "no new jobs."
 4. **Polite, minimal network use.** One request per company per run, a clear user agent, timeouts, and a daily cadence. Use only the public job board endpoints. No scraping of LinkedIn, Indeed, or any site that requires login or restricts automated access.
 5. **Personal data never enters git.** See "Files that must stay out of git" below.
@@ -38,7 +38,7 @@ The owner makes every application decision. This tool stops at a shortlist. It n
 ## Testing rules
 
 - Tests never hit the network. Each source has saved JSON fixtures in `tests/fixtures/`, captured once from a real public endpoint and trimmed.
-- Every filter rule has tests for match, no match, and the "can't tell, so flag" case.
+- Every filter rule has tests for match, no match, and the "can't tell, so flag" case. Where the owner has decided a can't-tell case (as for travel), the matrix row records the decided outcome.
 - When a bug is found, add a test that reproduces it before fixing it.
 
 ## Files that must stay out of git

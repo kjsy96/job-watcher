@@ -259,25 +259,28 @@ ROWS = [
         "travel '75%' exceeds the 40% limit",
         description="Commissioning at mining sites. Role is ~75% travel.",
     ),
+    # The owner chose to resolve every can't-tell case (docs/decisions.md,
+    # 2026-10-09): only a stated percentage that can go over the limit
+    # excludes, so these rows record the decided outcome instead.
     Row(
         "travel",
-        "can't tell: range straddles the limit",
-        FLAGGED,
-        "travel 'up to 50%' may exceed the 40% limit",
+        "n/a (decided): range straddles the limit, so excluded",
+        EXCLUDED,
+        "travel 'up to 50%' can go above the 40% limit",
         description="Commissioning at mining sites. Ability to travel (up to 50%).",
     ),
     Row(
         "travel",
-        "can't tell: no percentage given",
-        FLAGGED,
+        "n/a (decided): no percentage given, so it passes, quoted",
+        MATCH,
         "travel mentioned without a percentage",
         description="Commissioning at mining sites. Occasional travel to customer sites.",
     ),
     Row(
         "travel",
-        "can't tell: not stated",
-        FLAGGED,
-        "travel not stated",
+        "n/a (decided): not stated, so counted as 0%",
+        MATCH,
+        "travel not stated (counted as 0%)",
         description="Commissioning at mining sites.",
     ),
     # --- Sponsorship (only tiers with requires_sponsorship; test tier 2) ---
@@ -329,6 +332,49 @@ ROWS = [
         description=(
             "Commissioning at mining sites. Travel up to 10%. "
             "Must be eligible to work in Example Country."
+        ),
+    ),
+    Row(
+        "sponsorship",
+        "can't tell: refused, but a pathway title may qualify",
+        FLAGGED,
+        "may still qualify: ask whether they'd support the pathway permit",
+        title="Field Engineer",
+        location="Montreal, QC",
+        description="Commissioning at mining sites. Travel up to 10%. Unable to sponsor.",
+    ),
+    # --- Sponsorship restrictions (restriction_terms) ---
+    Row(
+        "sponsorship restriction",
+        "match: excluded, even for a pathway title",
+        EXCLUDED,
+        "sponsorship: restricted ('citizens and permanent residents only')",
+        title="Field Engineer",
+        location="Montreal, QC",
+        description=(
+            "Commissioning at mining sites. Travel up to 10%. "
+            "Open to citizens and permanent residents only."
+        ),
+    ),
+    Row(
+        "sponsorship restriction",
+        "no match",
+        MATCH,
+        "sponsorship: offered ('visa sponsorship')",
+        title="Implementation Lead",
+        location="Montreal, QC",
+        description="Commissioning at mining sites. Travel up to 10%. Visa sponsorship provided.",
+    ),
+    Row(
+        "sponsorship restriction",
+        "n/a: the wording is there or it isn't",
+        EXCLUDED,
+        "restricted",
+        title="Implementation Lead",
+        location="Montreal, QC",
+        description=(
+            "Commissioning at mining sites. Travel up to 10%. Visa sponsorship provided. "
+            "Citizens and permanent residents only."
         ),
     ),
     # --- Several locations: best tier wins ---
