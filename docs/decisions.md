@@ -2,6 +2,24 @@
 
 Owner decisions that change the plan, the rules, or how the tool behaves, newest first. Each entry says what was decided, why, and what it affects. Filter rule changes during Phase 2 tuning are logged here too (issue 2.8). Because this file is public, rule changes are described in general terms; the specific terms and places live only in the gitignored `config/filters.toml` (design principle 5).
 
+## 2026-10-09: Travel and sponsorship can't-tell cases settled
+
+**Decision:** The owner answered the open questions from issue 2.3.
+- **Travel not stated:** passes, counted as 0%. It was flagged.
+- **Travel without a percentage** ("occasional travel", "twice a year"): passes, with the sentence quoted in the reasons. It was flagged.
+- **Travel that can go above the limit** ("up to 50%" against a 40% limit, or conflicting ranges): excluded. It was flagged. Only travel fully within the limit passes.
+- **Sponsorship refusals for pathway titles:** flagged, not excluded. The reason suggests asking whether the employer would support the pathway permit. Non-pathway titles are still excluded.
+- **New `restriction_terms`:** wording no work permit gets around (citizens or permanent residents only) is excluded for every title.
+- **Eligibility wording** gained a "legally authorized to work in" variant (private config).
+
+**Why:**
+- Travel without a stated percentage was the most common flag, and in practice was rarely heavy. So only a stated percentage can rule a posting out.
+- For the pathway route, "we can't sponsor" often means the employer won't run the full labour-market process. The pathway permit doesn't need that process, though the employer still has to file the job offer, so it's a question to ask, not a reason to exclude.
+
+**Also:** design principle 2 in `CLAUDE.md` used "travel percentage not stated" as its example of flag, don't guess. The example now uses an ambiguous location.
+
+**Affects:** `travel.py`, `sponsorship.py`, `filter_config.py`, `docs/rules.md`, `PROJECT_PLAN.md`, `README.md`, `CLAUDE.md`, the example config, and the private `config/filters.toml`.
+
 ## 2026-10-09: New target sector, restructured location tiers, title flag terms
 
 **Decision:** The owner's targets changed:

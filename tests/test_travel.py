@@ -5,7 +5,7 @@ import pytest
 from jobwatcher.travel import TravelStatus, assess, find_ranges
 
 LIMIT = 40
-WITHIN, EXCEEDS, UNCLEAR = TravelStatus.WITHIN, TravelStatus.EXCEEDS, TravelStatus.UNCLEAR
+WITHIN, EXCEEDS = TravelStatus.WITHIN, TravelStatus.EXCEEDS
 
 
 @pytest.mark.parametrize(
@@ -73,10 +73,17 @@ def test_percentages_that_are_not_about_travel_are_ignored(text: str) -> None:
         ("Travel 40%.", WITHIN, "within 40%"),  # at the limit is within
         ("Role is ~75% travel.", EXCEEDS, "travel '75%' exceeds the 40% limit"),
         ("Travel 50%+.", EXCEEDS, "exceeds the 40% limit"),
-        ("Ability to travel (up to 50%).", UNCLEAR, "travel 'up to 50%' may exceed the 40% limit"),
-        ("Travel 30-50% of the time.", UNCLEAR, "may exceed"),  # straddles the limit
-        ("Travel at least 30%.", UNCLEAR, "may exceed"),
-        ("Travel 10% normally. Peaks of 60% travel in launches.", UNCLEAR, "may exceed"),
+        # Anything that can go above the limit is excluded (owner decision,
+        # 2026-10-09), and the reason says "can" rather than "exceeds".
+        (
+            "Ability to travel (up to 50%).",
+            EXCEEDS,
+            "travel 'up to 50%' can go above the 40% limit",
+        ),
+        ("Travel 30-50% of the time.", EXCEEDS, "can go above"),  # straddles the limit
+        ("Travel at least 30%.", EXCEEDS, "can go above"),
+        ("Travel 10% normally. Peaks of 60% travel in launches.", EXCEEDS, "can go above"),
+        ("Travel up to 41%.", EXCEEDS, "can go above"),  # one point over
     ],
 )
 def test_percentages_against_the_limit(text: str, status: TravelStatus, reason: str) -> None:
@@ -95,9 +102,9 @@ def test_percentages_against_the_limit(text: str, status: TravelStatus, reason: 
         "Candidates should be comfortable with frequent travel.",
     ],
 )
-def test_travel_without_a_percentage_is_unclear_and_quoted(text: str) -> None:
+def test_travel_without_a_percentage_passes_and_is_quoted(text: str) -> None:
     result = assess(text, LIMIT)
-    assert result.status is UNCLEAR
+    assert result.status is WITHIN
     assert result.reason.startswith("travel mentioned without a percentage: '")
 
 
@@ -107,9 +114,9 @@ def test_long_sentence_is_shortened_in_the_reason() -> None:
     assert len(result.reason) < 180
 
 
-def test_no_travel_mentioned_is_not_stated() -> None:
+def test_no_travel_mentioned_counts_as_zero() -> None:
     result = assess("Lead commissioning at mining sites.", LIMIT)
-    assert (result.status, result.reason) == (UNCLEAR, "travel not stated")
+    assert (result.status, result.reason) == (WITHIN, "travel not stated (counted as 0%)")
 
 
 @pytest.mark.parametrize("text", ["No travel required.", "Travel is not required for this role."])

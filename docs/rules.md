@@ -90,9 +90,11 @@ If nothing places a part:
 |---|---|---|
 | **Match** | Every range tops out at or below `max_percent`. "No travel" or "travel is not required" counts as 0%. | Passes; the reason shows the quote |
 | **No match** | Every range starts above `max_percent` (e.g. "~75%" against 40) | **Excluded** |
-| **Can't tell** | Ranges straddle the limit ("up to 50%" against 40 could be 10% or 50%) or conflict | **Flagged** |
-| **Can't tell** | Travel is described without a percentage ("twice per year", "occasional travel", "90+ days per year") | **Flagged**, with the sentence quoted. Days or weeks per year aren't converted, because calendar vs. working days would be a guess. |
-| **Can't tell** | Travel isn't mentioned at all | **Flagged**: "travel not stated" |
+| **No match** | A range can go above the limit ("up to 50%" against 40 could be 10% or 50%), or ranges conflict | **Excluded**: "can go above the limit" |
+| **Match** | Travel is described without a percentage ("twice per year", "occasional travel", "90+ days per year") | Passes, with the sentence quoted in the reasons. Days or weeks per year aren't converted, because calendar vs. working days would be a guess. |
+| **Match** | Travel isn't mentioned at all | Passes: "travel not stated (counted as 0%)" |
+
+There's no can't-tell case: the owner chose to settle each one (decisions, 2026-10-09). Only a stated percentage that can go above the limit rules a posting out.
 
 ## Sponsorship
 
@@ -101,13 +103,16 @@ If nothing places a part:
 | Result | When | Outcome |
 |---|---|---|
 | **Match** | An offer term (`positive_terms`) appears | Passes |
-| **No match** | A refusal term (`hard_no_terms`) appears | **Excluded** |
+| **No match** | A restriction term (`restriction_terms`, e.g. "citizens and permanent residents only") appears | **Excluded**, for every title. It beats an offer. |
+| **No match** | A refusal term (`hard_no_terms`) appears, and the title isn't a pathway title | **Excluded** |
 | **No match** | Only eligibility wording (`eligibility_terms`), and the title isn't a pathway title | **Excluded** |
 | **Can't tell** | Only eligibility wording, and the title matches the tier's `pathway_title_terms` | **Flagged**: the pathway permit may satisfy the requirement |
+| **Can't tell** | A refusal term, and the title matches the tier's `pathway_title_terms` | **Flagged**: "won't sponsor (...); pathway title may still qualify: ask whether they'd support the pathway permit" |
 | **Can't tell** | A refusal and an offer in different sentences | **Flagged**: "conflicting statements" |
 | **Can't tell** | None of the terms appear | **Flagged**: "sponsorship not stated" |
 
 **Watch out for:**
 - **Negated offers.** An offer term inside a sentence that also has a refusal term doesn't count. "Visa sponsorship is not available" contains the offer phrase "visa sponsorship", but it's a refusal.
+- **Refusal or restriction?** Put wording in `restriction_terms` only when no work permit gets around it (citizens or permanent residents only, a security clearance). "We can't sponsor" often means the employer won't run the full labour-market process, which a pathway permit doesn't need, so it belongs in `hard_no_terms`.
 - **Pathway titles.** When the title matches the tier's `pathway_title_terms`, the tier's `pathway_note` is added as a "note:" line, on a Match or a Flagged posting. The report sorts these postings to the top of Flagged.
 - **Unmatched wording.** Eligibility wording only matches the exact phrases you configure. A posting that says "must be legally authorized to work in" followed by a list of countries won't match unless that phrase is in `eligibility_terms`. Until then, it's flagged as "not stated", which is safe.
