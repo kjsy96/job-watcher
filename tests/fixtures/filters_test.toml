@@ -5,6 +5,7 @@
 [roles]
 title_include = ["implementation", "field engineer", "test engineer", "deployment"]
 title_exclude = ["intern", "vp ", "account executive"]
+title_flag_terms = ["firmware", "controls engineer"]
 
 [domain]
 terms = ["mining", "mine", "manufacturing", "cooling tower"]
@@ -14,14 +15,14 @@ terms = ["commissioning", "data validation", "troubleshooting"]
 
 [location]
 non_us_remote_terms = ["india", "emea", "uk", "germany"]
-ambiguous_terms = ["portland", "springfield", "ca"]
+ambiguous_terms = ["springfield", "ca"]
 
 [location.tier1]
-label = "Remote US / Mountain"
+label = "Remote US / Example states"
 remote_terms = ["remote", "work from home"]
 us_wide_terms = ["united states", "usa", "us"]
-state_codes = ["CO", "OR"]
-place_terms = ["denver", "salem"]
+state_codes = ["ID", "VT"]
+place_terms = ["boise", "burlington"]
 
 [location.tier2]
 label = "Quebec / Remote Example Country"

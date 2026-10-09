@@ -124,6 +124,8 @@ sector = "industrial AI"  # free text, used for grouping in reports
 # Title must contain at least one of these to be considered at all
 title_include = ["implementation", "deployment", "field engineer", "test engineer"]
 title_exclude = ["intern", "vp ", "account executive"]
+# Usually not a fit: flagged if a role term also hits, excluded otherwise
+title_flag_terms = ["firmware"]
 
 [domain]
 # Industries and settings, matched in the description or the company's sector
@@ -141,12 +143,12 @@ ambiguous_terms = []
 label = "Preferred"
 remote_terms = ["remote"]
 us_wide_terms = ["united states"]
-state_codes = ["CO"]
-place_terms = ["denver"]
+state_codes = ["ID"]
+place_terms = ["boise"]
 
 [location.tier2]
 label = "Acceptable"
-place_terms = ["boulder"]
+place_terms = ["meridian"]
 
 [location.tier3]
 label = "Abroad, sponsorship needed"
@@ -171,12 +173,12 @@ All term matching is case-insensitive and on whole words or phrases, so a short 
 
 ### Filter outcomes
 
-Location is handled in preference tiers rather than a single allow list. Each posting's location field is matched against the tiers; a posting listing several locations gets its best tier. Remote roles listed across the whole country count as remote, remote roles tied to another country are excluded, and location text that can't be placed with confidence is flagged rather than guessed. A tier can be marked as requiring visa sponsorship. Postings in that tier are checked against sponsorship terms: a clear "no sponsorship" statement excludes the posting, a clear offer of sponsorship allows it, and silence flags it for a human look. A sponsorship tier can also list pathway title terms for occupations that may qualify for a simpler, occupation-based work permit. Postings whose titles match get a note explaining the possible route, sort to the top of Flagged, and have eligibility-only wording ("must be eligible to work in...") flagged instead of excluded, since the occupation-based permit may satisfy it. Explicit refusals still exclude. A short code that could mean two places (for example "CA" for California or Canada) is treated as ambiguous unless other text settles it. When a location includes a state or province code, that code decides the tier, so a city name shared across states (for example Salem, MA versus Salem, OR) is not mismatched.
+Location is handled in preference tiers rather than a single allow list. Each posting's location field is matched against the tiers; a posting listing several locations gets its best tier. Remote roles listed across the whole country count as remote, remote roles tied to another country are excluded, and location text that can't be placed with confidence is flagged rather than guessed. A tier can be marked as requiring visa sponsorship. Postings in that tier are checked against sponsorship terms: a clear "no sponsorship" statement excludes the posting, a clear offer of sponsorship allows it, and silence flags it for a human look. A sponsorship tier can also list pathway title terms for occupations that may qualify for a simpler, occupation-based work permit. Postings whose titles match get a note explaining the possible route, sort to the top of Flagged, and have eligibility-only wording ("must be eligible to work in...") flagged instead of excluded, since the occupation-based permit may satisfy it. Explicit refusals still exclude. A short code that could mean two places (for example "CA" for California or Canada) is treated as ambiguous unless other text settles it. When a location includes a state or province code, that code decides the tier, so a city name shared across states (for example Burlington, MA versus Burlington, VT) is not mismatched.
 
 Role titles and the fields a candidate fits are kept separate on purpose. Many good-fit roles have generic titles (for example "Project Engineer" or "Solutions Manager"), and what makes them a fit is the industry and the work described, not the title.
 
 - **Match**: a role title term hit, plus at least one domain or work term in the description, location acceptable, travel within the limit, no flag terms. Matches are sorted by how many distinct domain and work terms they hit, so the strongest overlap appears first.
-- **Flagged**: would be a Match, but something needs a human look (travel not stated, a flag term found, location unclear). Every flag lists its reason.
+- **Flagged**: would be a Match, but something needs a human look (travel not stated, a flag term found, location unclear, or a title that has a role term and also a term for a kind of role that's usually not a fit). Every flag lists its reason.
 - **Possible**: a role title term hit, but no domain or work terms found. Shown in the report as a short list of titles and links only, since generic postings can still be worth a glance.
 - **Excluded**: title exclude hit, no role title term, location matching no tier (or remote tied to another country), or travel above the limit. Reasons stored, shown as a count with details available.
 

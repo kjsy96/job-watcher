@@ -45,7 +45,7 @@ def test_match_with_score_tier_and_reasons() -> None:
     assert result.work_terms == ["commissioning", "data validation"]
     assert result.reasons == [
         "title: implementation",
-        "location: tier 1 (Remote US / Mountain): 'Remote - US' matched us",
+        "location: tier 1 (Remote US / Example states): 'Remote - US' matched us",
         "travel 'up to 10%' is within 40%",
         "domain: mining",
         "work: commissioning, data validation",
@@ -84,7 +84,7 @@ def test_title_fits_but_no_domain_or_work_terms_is_possible() -> None:
 
 
 def test_possible_still_lists_flags() -> None:
-    result = evaluate(posting(location="Portland", description="Host a webinar."), RULES)
+    result = evaluate(posting(location="Springfield", description="Host a webinar."), RULES)
     assert result.outcome is Outcome.POSSIBLE
     assert any("ambiguous" in r for r in result.reasons)
     assert "description mentions: webinar" in result.reasons
@@ -96,7 +96,7 @@ def test_possible_still_lists_flags() -> None:
 @pytest.mark.parametrize(
     ("location", "expected"),
     [
-        ("Portland", "location: 'Portland' is ambiguous (portland)"),
+        ("Springfield", "location: 'Springfield' is ambiguous (springfield)"),
         ("", "location: location not stated"),
         ("Remote - European Union", "location: remote, but no tier recognizes"),
     ],
@@ -143,9 +143,9 @@ def test_padded_exclude_term_still_matches_whole_word() -> None:
 
 
 def test_location_in_no_tier() -> None:
-    result = evaluate(posting(location="Salem, MA"), RULES)
+    result = evaluate(posting(location="Burlington, MA"), RULES)
     assert result.outcome is Outcome.EXCLUDED
-    assert result.reasons == ["location: 'Salem, MA' is in MA, which is in no tier"]
+    assert result.reasons == ["location: 'Burlington, MA' is in MA, which is in no tier"]
 
 
 def test_all_exclusion_reasons_are_recorded() -> None:
@@ -158,13 +158,13 @@ def test_all_exclusion_reasons_are_recorded() -> None:
 
 
 def test_excluded_beats_flags() -> None:
-    result = evaluate(posting(title="Intern", location="Portland"), RULES)
+    result = evaluate(posting(title="Intern", location="Springfield"), RULES)
     assert result.outcome is Outcome.EXCLUDED
 
 
 def test_exclusion_keeps_matched_terms_for_review() -> None:
     # Excluded postings can be reviewed later, so what matched is kept.
-    result = evaluate(posting(location="Salem, MA"), RULES)
+    result = evaluate(posting(location="Burlington, MA"), RULES)
     assert result.domain_terms == ["mining"]
     assert result.tier is None
 
@@ -185,3 +185,47 @@ def test_travel_rule_is_off_without_max_percent(tmp_path: Path) -> None:
     result = evaluate(posting(description="Commissioning at mining sites."), rules)
     assert result.outcome is Outcome.MATCH
     assert not any("travel" in r for r in result.reasons)
+
+
+# --- title flag terms: usually not a fit, but the title is ambiguous ---
+
+
+def test_title_flag_term_with_a_role_term_is_flagged() -> None:
+    # "test engineer" is a role term, so this might still be a fit.
+    result = evaluate(posting(title="Firmware Test Engineer"), RULES)
+    assert result.outcome is Outcome.FLAGGED
+    assert result.reasons[0] == (
+        "title mentions firmware, which is usually not a fit; check what the role is"
+    )
+    assert result.title_terms == ["test engineer"]
+
+
+def test_title_flag_term_alone_is_excluded_and_named() -> None:
+    result = evaluate(posting(title="Senior Controls Engineer"), RULES)
+    assert result.outcome is Outcome.EXCLUDED
+    assert result.reasons == ["title matches no role term (and mentions controls engineer)"]
+
+
+def test_title_flag_term_without_overlap_stays_possible_with_the_reason() -> None:
+    # No domain or work terms: Possible, as for any title-only hit, and the
+    # reason to be careful is still shown.
+    result = evaluate(
+        posting(title="Firmware Test Engineer", description="Travel up to 10%."), RULES
+    )
+    assert result.outcome is Outcome.POSSIBLE
+    assert "title mentions firmware, which is usually not a fit; check what the role is" in (
+        result.reasons
+    )
+
+
+def test_title_flag_terms_match_whole_words_only() -> None:
+    # "firmwares" is a plural form; "Firmwareless" is a different word.
+    assert evaluate(posting(title="Firmwareless Test Engineer"), RULES).outcome is Outcome.MATCH
+    flagged = evaluate(posting(title="Test Engineer, Firmwares"), RULES)
+    assert flagged.outcome is Outcome.FLAGGED
+
+
+def test_title_exclude_still_beats_a_title_flag() -> None:
+    result = evaluate(posting(title="Firmware Test Engineer Intern"), RULES)
+    assert result.outcome is Outcome.EXCLUDED
+    assert result.reasons[0] == "title contains excluded term(s): intern"

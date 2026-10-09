@@ -2,6 +2,21 @@
 
 Owner decisions that change the plan, the rules, or how the tool behaves, newest first. Each entry says what was decided, why, and what it affects. Filter rule changes during Phase 2 tuning are logged here too (issue 2.8). Because this file is public, rule changes are described in general terms; the specific terms and places live only in the gitignored `config/filters.toml` (design principle 5).
 
+## 2026-10-09: New target sector, restructured location tiers, title flag terms
+
+**Decision:** The owner's targets changed:
+- **New sector:** a new target sector was added, with its own domain terms and a role-title term. Company list and discovery industry terms were updated to match.
+- **Location tiers restructured:** remote stays preferred. On-site and hybrid roles are now acceptable in a set of named regions, split across tiers by how each region's places are recognized (by state code, or by city name where only part of a state counts). The sponsorship tier and the lowest-priority tier are kept.
+- **Title flag terms:** a new rule, `[roles] title_flag_terms`, for kinds of role that are usually not a fit. A title with one of these terms and also a role term is flagged for a look rather than excluded. Without a role term it's excluded as before, and the reason names the term.
+
+- **One excluded title term added:** the new role term also matched an HR title, so that title's wording was added to `title_exclude`.
+
+**Why:** Several generic role titles fit the new sector, so they were kept as role terms. The overlap score still decides between Match and Possible. Some engineering titles in the sector are rarely a fit, but share words with ones that are. Flagging the mixed titles follows "flag, don't guess."
+
+**Also:** the public example config, test fixture, and doc examples now use neutral places, so none of the owner's target places appear in public files.
+
+**Affects:** `filters.py` and `filter_config.py` (the new rule), `docs/rules.md`, `PROJECT_PLAN.md` (filter outcomes), and the private `config/filters.toml`, `config/companies.toml`, and `config/discovery.toml`.
+
 ## 2026-10-06: Fourth location tier removed
 
 **Decision:** The owner removed the fourth, lowest-priority location tier added on 2026-10-04. Its place names and region labels went back on the non-US exclusion list, and the discovery searches for those countries were dropped.

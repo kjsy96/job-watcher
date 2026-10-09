@@ -155,7 +155,7 @@ def test_no_source_problems_is_stated() -> None:
 def test_matches_grouped_by_tier_then_sorted_by_score(report: str) -> None:
     matches = section(report, "Matches")
     order = [
-        matches.index("### Tier 1: Remote US / Mountain"),
+        matches.index("### Tier 1: Remote US / Example states"),
         matches.index("[High Match]"),
         matches.index("[Low Match]"),
         matches.index("### Tier 2: Quebec / Remote Example Country"),

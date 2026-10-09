@@ -9,7 +9,7 @@ Every rule is tested for **match**, **no match**, and **can't tell** in `tests/t
 | Outcome | Meaning |
 |---|---|
 | **Match** | The title fits, the description overlaps with the target industries or work, and the location is in a tier. Ranked by overlap score. |
-| **Flagged** | Would be a Match, but something needs a human look: unclear location, travel, or sponsorship, or a flag term. The reason to look is listed first. |
+| **Flagged** | Would be a Match, but something needs a human look: unclear location, travel, or sponsorship, a description flag term, or a title flag term next to a role term. The reason to look is listed first. |
 | **Possible** | The title fits, but no domain or work term was found. Shown as a short list, since generic postings can still be worth a glance. |
 | **Excluded** | Fails a rule. Every reason is recorded, not just the first, so excluded postings can be reviewed. |
 
@@ -31,6 +31,9 @@ Order of checks: **Excluded** beats everything. Then **Possible** (no overlap), 
 |---|---|---|---|---|
 | Role title | `[roles] title_include` | Title has a role term, so the posting is considered | **Excluded**: "title matches no role term" | n/a: every posting has a title |
 | Title exclude | `[roles] title_exclude` | **Excluded**: "title contains excluded term(s)" | Not excluded | n/a: a word is in the title or it isn't |
+| Title flag | `[roles] title_flag_terms` | With no role term: **Excluded**, and the reason names the term ("title matches no role term (and mentions ...)") | No effect | A role term also hits, so the title is ambiguous: **Flagged**: "title mentions ..., which is usually not a fit" |
+
+Use `title_flag_terms` for kinds of role that are usually not a fit but share words with ones that are, so a person decides when a title mixes the two. Use `title_exclude` only for words that rule a posting out every time.
 
 ## Description rules
 
@@ -46,10 +49,10 @@ The posting's location text is split on `;` (several locations), and each part i
 
 For each part, in order:
 
-1. **State or province code.** A code after a comma, such as `Portland, OR`, places the part in the tier that lists the code (`state_codes`, `province_codes`).
+1. **State or province code.** A code after a comma, such as `Springfield, VT`, places the part in the tier that lists the code (`state_codes`, `province_codes`).
 2. **Remote abroad.** A remote part that names a place in `non_us_remote_terms`, such as "Remote - India", is **excluded**.
 3. **Place names.** `place_terms` match anywhere in the part.
-   - A tier that lists codes only accepts its place names with no code or with one of its own codes. So "Salem, MA" never matches a tier with `salem` and code `OR`.
+   - A tier that lists codes only accepts its place names with no code or with one of its own codes. So "Burlington, MA" never matches a tier with `burlington` and code `VT`.
    - A tier with no codes accepts its place names with any code, which suits a city that spans two states.
 4. **Country names.** `us_wide_terms` and `country_terms` count only for a bare country ("United States") or a remote listing ("Remote - US"). An on-site "Austin, TX, United States" is not "remote US".
 5. **Plain "Remote".** "Remote" (or another listed remote term) with nothing else goes to the first tier that lists it.
@@ -58,7 +61,7 @@ If nothing places a part:
 
 | Situation | Result |
 |---|---|
-| The part contains an `ambiguous_terms` entry ("Portland" alone, or "CA", which could be California or Canada) | **Flagged** |
+| The part contains an `ambiguous_terms` entry ("Springfield" alone, or "CA", which could be California or Canada) | **Flagged** |
 | The part is remote but the rest isn't recognized ("Remote - European Union") | **Flagged**, with a hint to add the place to a tier or to `non_us_remote_terms` |
 | The board marks the job remote, but its city or country fits no tier | **Flagged** |
 | No location given | **Flagged**: "location not stated" |

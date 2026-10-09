@@ -116,7 +116,7 @@ def test_list_items_stay_on_separate_lines() -> None:
         {
             "id": "abc",
             "text": "Field Engineer",
-            "categories": {"location": "Denver, CO"},
+            "categories": {"location": "Boise, ID"},
             "hostedUrl": "https://jobs.lever.co/x/abc",
             "description": "<div>Intro</div>",
             "lists": [{"text": "Requirements", "content": "<li>Up to 25% travel</li><li>CO</li>"}],
@@ -170,7 +170,7 @@ def test_malformed_list_section_raises(payload: list[dict[str, object]]) -> None
 
 
 def test_non_string_location_entries_raise(payload: list[dict[str, object]]) -> None:
-    payload[0]["categories"] = {"allLocations": ["Denver, CO", 42]}
+    payload[0]["categories"] = {"allLocations": ["Boise, ID", 42]}
     with pytest.raises(SourceError, match="allLocations"):
         LeverSource().parse(COMPANY, payload)
 

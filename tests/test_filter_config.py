@@ -36,7 +36,7 @@ def test_committed_example_is_valid() -> None:
 def test_test_rules_load() -> None:
     rules = load_filter_rules(TEST_RULES)
     assert [t.number for t in rules.tiers] == [1, 2, 3]
-    assert rules.tiers[0].region_codes == {"CO", "OR"}
+    assert rules.tiers[0].region_codes == {"ID", "VT"}
     assert rules.tiers[1].region_codes == {"QC"}
     assert rules.tiers[1].requires_sponsorship is True
     assert rules.tiers[2].region_codes == frozenset()
@@ -111,7 +111,7 @@ def test_travel_max_percent_must_be_0_to_100(tmp_path: Path, value: str) -> None
 @pytest.mark.parametrize(
     ("change", "message"),
     [
-        (('label = "Anywhere"', 'label = "Anywhere"\nstate_codes = "CO"'), "two-letter codes"),
+        (('label = "Anywhere"', 'label = "Anywhere"\nstate_codes = "ID"'), "two-letter codes"),
         (('label = "Anywhere"', "label = 7"), "must be text"),
         (('label = "Anywhere"', 'label = "Anywhere"\npathway_note = ["x"]'), "must be text"),
     ],
@@ -159,3 +159,14 @@ def test_tier10_sorts_after_tier2(tmp_path: Path) -> None:
 def test_invalid_toml_is_reported(tmp_path: Path) -> None:
     with pytest.raises(ConfigError, match="not valid TOML"):
         load_filter_rules(write(tmp_path, '[roles]\ntitle_include = ["engineer"'))
+
+
+def test_title_flag_terms_are_optional_and_validated(tmp_path: Path) -> None:
+    assert not load_filter_rules(write(tmp_path, MINIMAL)).title_flag_terms.any("firmware")
+    include = 'title_include = ["engineer"]'
+    with_terms = MINIMAL.replace(include, include + '\ntitle_flag_terms = ["rf"]')
+    assert load_filter_rules(write(tmp_path, with_terms)).title_flag_terms.any("RF Engineer")
+    for bad, message in (('"rf"', "must be a list"), ('[""]', "empty term")):
+        text = MINIMAL.replace(include, include + f"\ntitle_flag_terms = {bad}")
+        with pytest.raises(ConfigError, match=message):
+            load_filter_rules(write(tmp_path, text))
