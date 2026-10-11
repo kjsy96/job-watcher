@@ -84,7 +84,9 @@ _SECTION_KEYS: dict[str, frozenset[str]] = {
     "domain": frozenset({"terms"}),
     "work": frozenset({"terms"}),
     "description": frozenset({"flag_terms"}),
-    "sponsorship": frozenset({"hard_no_terms", "eligibility_terms", "positive_terms"}),
+    "sponsorship": frozenset(
+        {"hard_no_terms", "eligibility_terms", "positive_terms", "restriction_terms"}
+    ),
     "travel": frozenset({"max_percent"}),
 }
 _LOCATION_KEYS = frozenset({"non_us_remote_terms", "ambiguous_terms"})
@@ -125,6 +127,9 @@ class Sponsorship:
     hard_no_terms: Terms
     eligibility_terms: Terms
     positive_terms: Terms
+    # Always excluded, even for pathway titles: "citizens and permanent
+    # residents only" is a restriction no work permit gets around.
+    restriction_terms: Terms
 
 
 @dataclass(frozen=True)
@@ -188,6 +193,7 @@ def load_filter_rules(path: Path) -> FilterRules:
             hard_no_terms=_terms(sponsorship, "hard_no_terms", f"{path} [sponsorship]"),
             eligibility_terms=_terms(sponsorship, "eligibility_terms", f"{path} [sponsorship]"),
             positive_terms=_terms(sponsorship, "positive_terms", f"{path} [sponsorship]"),
+            restriction_terms=_terms(sponsorship, "restriction_terms", f"{path} [sponsorship]"),
         ),
         travel_max_percent=_max_percent(travel, f"{path} [travel]"),
     )

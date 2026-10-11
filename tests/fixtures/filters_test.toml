@@ -43,6 +43,7 @@ place_terms = ["texarkana"]
 hard_no_terms = ["unable to sponsor", "sponsorship is not available"]
 eligibility_terms = ["must be eligible to work in example country"]
 positive_terms = ["visa sponsorship", "will sponsor"]
+restriction_terms = ["citizens and permanent residents only"]
 
 [description]
 flag_terms = ["webinar", "train the trainer"]

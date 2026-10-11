@@ -7,11 +7,12 @@ testable and explainable.
 Outcome order (PROJECT_PLAN.md, "Filter outcomes"):
 
 1. Excluded:  a title exclude term, no role term in the title, a location
-              that fits no tier, travel above the limit, or sponsorship
-              refused in a tier that needs it. All reasons are kept.
+              that fits no tier, travel that can go above the limit, or
+              sponsorship refused in a tier that needs it. All reasons
+              are kept.
 2. Possible:  the title fits, but no domain or work term was found.
 3. Flagged:   would be a Match, but something needs a human look:
-              unclear location, travel, or sponsorship, a description flag
+              unclear location or sponsorship, a description flag
               term, or a title flag term alongside a role term.
 4. Match:     everything checks out. Ranked by overlap score.
 """
@@ -86,7 +87,6 @@ def evaluate(posting: Posting, rules: FilterRules, sector: str = "") -> FilterRe
         trip = travel.assess(text, rules.travel_max_percent)
         {
             TravelStatus.EXCEEDS: exclusions,
-            TravelStatus.UNCLEAR: flags,
             TravelStatus.WITHIN: passed,
         }[trip.status].append(trip.reason)
 

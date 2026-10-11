@@ -3,12 +3,20 @@
 Only applied when the posting's location tier has requires_sponsorship.
 Terms come from [sponsorship] in filters.toml:
 
-- hard no ("unable to sponsor"):             excluded
+- restriction ("citizens and permanent
+  residents only"):                           excluded, pathway titles too
+- hard no ("unable to sponsor"):             excluded, except pathway titles,
+                                              which are flagged instead
 - offered ("visa sponsorship"):              ok
 - eligibility only ("must be eligible to
   work in ..."):                              excluded, except pathway titles,
                                               which are flagged instead
 - none of these:                             flagged, "sponsorship not stated"
+
+Why pathway titles are flagged on a refusal: an employer that won't
+"sponsor" often means it won't run the full labour-market process, which
+an occupation-based permit doesn't need. Whether it would support that
+permit is a question for a person to ask (docs/decisions.md, 2026-10-09).
 
 An offer term in the same sentence as a hard-no term is not counted:
 "Visa sponsorship is not available" contains the offer phrase "visa
@@ -51,16 +59,25 @@ def assess(description: str, title: str, tier: Tier, terms: Sponsorship) -> Spon
             # Offer phrases inside a "no" sentence are part of the "no".
             offered.extend(terms.positive_terms.hits(sentence))
     eligibility = terms.eligibility_terms.hits(description)
+    restricted = terms.restriction_terms.hits(description)
 
     def result(status: SponsorshipStatus, reason: str) -> SponsorshipResult:
         return SponsorshipResult(status, f"sponsorship: {reason}", note)
 
+    if restricted:
+        return result(SponsorshipStatus.EXCLUDE, f"restricted ({_quote(restricted)})")
     if hard_no and offered:
         return result(
             SponsorshipStatus.FLAG,
             f"conflicting statements ({_quote(hard_no)} vs {_quote(offered)})",
         )
     if hard_no:
+        if pathway_hits:
+            return result(
+                SponsorshipStatus.FLAG,
+                f"won't sponsor ({_quote(hard_no)}); pathway title ({_quote(pathway_hits)}) "
+                "may still qualify: ask whether they'd support the pathway permit",
+            )
         return result(SponsorshipStatus.EXCLUDE, f"won't sponsor ({_quote(hard_no)})")
     if offered:
         return result(SponsorshipStatus.OK, f"offered ({_quote(offered)})")

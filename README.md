@@ -8,7 +8,7 @@ A personal tool that checks a list of target companies' public job boards once a
 - Stores every posting in a local SQLite database, tracking when it was first and last seen, and marking postings closed when they disappear
 - Filters new postings into four groups, with the reason recorded for every decision:
   - **Match**: the title fits, the description overlaps with target industries or kinds of work, and location and travel are acceptable. Sorted by strongest overlap first.
-  - **Flagged**: would be a Match, but something needs a human look (travel not stated, location unclear, a flag term found)
+  - **Flagged**: would be a Match, but something needs a human look (location unclear, sponsorship not stated, a flag term found)
   - **Possible**: the title fits, but no industry or work overlap was found. Listed briefly, since generic titles can still be worth a glance.
   - **Excluded**: counted, with reasons available
 - Reports source failures at the top of every report. A broken job board never looks like "no new jobs."

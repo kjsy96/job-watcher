@@ -57,13 +57,16 @@ pathway_title_terms = ["engineer"]
 pathway_note = "Possible occupation-based work permit route: confirm fit"
 
 [sponsorship]
+# Refusals: excluded, except for pathway titles, which are flagged to ask about
 hard_no_terms = ["unable to sponsor"]
 eligibility_terms = ["must be eligible to work in example country"]
 positive_terms = ["visa sponsorship"]
+# Restrictions no work permit gets around: always excluded, even for pathway titles
+restriction_terms = ["citizens and permanent residents only"]
 
 [description]
 # Any of these in the description flags the posting for a human look
 flag_terms = ["workshop", "webinar", "train the trainer"]
 
 [travel]
-max_percent = 40  # above this: excluded; not stated: flagged
+max_percent = 40  # can go above this: excluded; not stated or no %: passes

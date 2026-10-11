@@ -28,11 +28,32 @@ def check(description: str, title: str = NON_PATHWAY_TITLE) -> tuple[Sponsorship
 # --- the four cases from the plan, for non-pathway and pathway titles ---
 
 
-@pytest.mark.parametrize("title", [NON_PATHWAY_TITLE, PATHWAY_TITLE])
-def test_clear_no_is_excluded(title: str) -> None:
-    status, reason = check("We are unable to sponsor work visas.", title)
+def test_clear_no_is_excluded() -> None:
+    status, reason = check("We are unable to sponsor work visas.")
     assert status is EXCLUDE
     assert reason == "sponsorship: won't sponsor ('unable to sponsor')"
+
+
+def test_clear_no_is_flagged_for_a_pathway_title() -> None:
+    # "Won't sponsor" often means "won't run the full labour-market process",
+    # which the pathway permit doesn't need, so a person asks (2026-10-09).
+    status, reason = check("We are unable to sponsor work visas.", PATHWAY_TITLE)
+    assert status is FLAG
+    assert reason == (
+        "sponsorship: won't sponsor ('unable to sponsor'); pathway title ('engineer') "
+        "may still qualify: ask whether they'd support the pathway permit"
+    )
+
+
+@pytest.mark.parametrize("title", [NON_PATHWAY_TITLE, PATHWAY_TITLE])
+def test_restriction_is_excluded_even_for_a_pathway_title(title: str) -> None:
+    status, reason = check(
+        "Open to Canadian citizens and permanent residents only. Visa sponsorship is offered "
+        "for other roles.",
+        title,
+    )
+    assert status is EXCLUDE
+    assert reason == "sponsorship: restricted ('citizens and permanent residents only')"
 
 
 @pytest.mark.parametrize("title", [NON_PATHWAY_TITLE, PATHWAY_TITLE])
@@ -137,9 +158,18 @@ def test_tier_without_sponsorship_requirement_ignores_the_wording() -> None:
 
 
 def test_sponsorship_tier_refusal_excludes() -> None:
-    result = evaluate(posting("Montreal, QC", BASE + " Unable to sponsor."), RULES)
+    result = evaluate(
+        posting("Montreal, QC", BASE + " Unable to sponsor.", title="Implementation Lead"), RULES
+    )
     assert result.outcome is Outcome.EXCLUDED
     assert result.reasons == ["sponsorship: won't sponsor ('unable to sponsor')"]
+
+
+def test_sponsorship_tier_refusal_is_flagged_for_a_pathway_title_with_the_note() -> None:
+    result = evaluate(posting("Montreal, QC", BASE + " Unable to sponsor."), RULES)
+    assert result.outcome is Outcome.FLAGGED
+    assert result.reasons[0].startswith("sponsorship: won't sponsor ('unable to sponsor')")
+    assert result.reasons[1] == f"note: {PATHWAY_NOTE}"
 
 
 def test_sponsorship_tier_offer_is_a_match_with_reason() -> None:

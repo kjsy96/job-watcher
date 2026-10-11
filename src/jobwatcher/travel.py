@@ -8,12 +8,15 @@ Each percentage near a travel word becomes a range (low, high), and the
 posting is judged on all of its ranges together:
 
 - every range tops out at or below the limit:  within
-- every range starts above the limit:          exceeds  -> excluded
-- anything in between ("up to 50%" vs 40%):    unclear  -> flagged
+- any range can go above it ("~75%", or
+  "up to 50%" against 40%):                     exceeds  -> excluded
 
 Travel described without a percentage ("twice per year", "occasional
-travel") is flagged with the sentence quoted, not converted: whether "90
-days per year" means calendar or working days would be a guess.
+travel") passes, with the sentence quoted so a person still sees it. It
+isn't converted: whether "90 days per year" means calendar or working
+days would be a guess. Travel that isn't mentioned at all passes as 0%.
+These are the owner's choices (docs/decisions.md, 2026-10-09): only a
+stated percentage can rule a posting out.
 """
 
 import re
@@ -54,7 +57,6 @@ _QUALIFIER_WINDOW = 40  # characters before a percentage checked for "up to" etc
 class TravelStatus(StrEnum):
     WITHIN = "within"
     EXCEEDS = "exceeds"
-    UNCLEAR = "unclear"
 
 
 @dataclass(frozen=True, slots=True)
@@ -122,8 +124,10 @@ def assess(text: str, max_percent: int) -> TravelResult:
             return TravelResult(
                 TravelStatus.EXCEEDS, f"travel {quoted} exceeds the {max_percent}% limit"
             )
+        # "up to 50%" against 40 could be 10% or 50%: anything that can go
+        # over the limit is excluded, and the reason says it's a "can".
         return TravelResult(
-            TravelStatus.UNCLEAR, f"travel {quoted} may exceed the {max_percent}% limit"
+            TravelStatus.EXCEEDS, f"travel {quoted} can go above the {max_percent}% limit"
         )
 
     if _NO_TRAVEL.search(text):
@@ -135,6 +139,6 @@ def assess(text: str, max_percent: int) -> TravelResult:
             if len(snippet) > 120:
                 snippet = snippet[:117] + "..."
             return TravelResult(
-                TravelStatus.UNCLEAR, f"travel mentioned without a percentage: '{snippet}'"
+                TravelStatus.WITHIN, f"travel mentioned without a percentage: '{snippet}'"
             )
-    return TravelResult(TravelStatus.UNCLEAR, "travel not stated")
+    return TravelResult(TravelStatus.WITHIN, "travel not stated (counted as 0%)")
